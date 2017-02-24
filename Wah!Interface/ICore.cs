@@ -18,9 +18,9 @@ namespace Wah_Interface {
 	public interface IProcessor {
 
 		//prohibit access
-		string Module { get; set; }
+		AModule ActiveModule { get; set; }
 		void LoadModules();
-		//bool ModuleLoaded(string module);
+		bool ModuleLoaded(string module);
 		AModule FindModule(string name);
 		void BeginListening();
 		void RunCommandLoop();

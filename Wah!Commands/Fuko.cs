@@ -11,16 +11,13 @@ namespace Wah_Commands {
 
 		}
 
-		
+		public override Dictionary<string, CommandDelegate> InitializeCommands() {
+			throw new NotImplementedException();
+		}
 
 		public override void InitializeSettings(ISettings sets) {
 			throw new NotImplementedException();
 		}
 
-		public override IReturn Handle(ICore wah, string line) {
-			string namae = wah.Api.Call("fuko no namae wa?");
-
-			return new NoReturn();
-		}
 	}
 }

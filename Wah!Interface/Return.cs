@@ -10,7 +10,7 @@ namespace Wah_Interface {
 	}
 	public class NoReturn : IReturn {
 		public R Accept<R>(IReturnVisitor<R> visitor) {
-			return visitor.Visit(this);
+			return visitor.VisitNone(this);
 		}
 	}
 	public class ErrorReturn : IReturn {
@@ -19,7 +19,7 @@ namespace Wah_Interface {
 			Exception = exception;
 		}
 		public R Accept<R>(IReturnVisitor<R> visitor) {
-			return visitor.Visit(this);
+			return visitor.VisitError(this);
 		}
 	}
 	public class StringReturn : IReturn {
@@ -28,7 +28,7 @@ namespace Wah_Interface {
 			Value = value;
 		}
 		public R Accept<R>(IReturnVisitor<R> visitor) {
-			return visitor.Visit(this);
+			return visitor.VisitString(this);
 		}
 	}
 	public interface IReturnVisitor<R> {

@@ -20,7 +20,8 @@ namespace Wah_Core {
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
 			if (keyData == Keys.Enter) {
 				Console.WriteLine("Enter");
-				wpro.Prepare("fuko get gmail");
+				wpro.Prepare("wah? fuko.partyhat true");
+				//wpro.Prepare("fuko get gmail");
 				return true;
 			}
 			else if (keyData == Keys.Back) {

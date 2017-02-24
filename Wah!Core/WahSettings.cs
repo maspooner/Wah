@@ -33,11 +33,12 @@ namespace Wah_Core {
 
 		public void Set(string name, string content) {
 			Func<Setting, bool> matchesName = s => s.Name.Equals(name);
-			if (settings[wpro.Module].Any(matchesName)) {
-				SafelyModifyContent(settings[wpro.Module].First(matchesName), content);
+			IList<Setting> sets = settings[wpro.ActiveModule.Name];
+			if (sets.Any(matchesName)) {
+				SafelyModifyContent(sets.First(matchesName), content);
 			}
 			else {
-				throw new NoSuchItemException("setting " + wpro.Module + "." + name + " does not exist, nya.");
+				throw new NoSuchItemException("setting " + wpro.ActiveModule + "." + name + " does not exist, nya.");
 			}
 		}
 
@@ -53,7 +54,7 @@ namespace Wah_Core {
 				s.Content = newValue;
 			}
 			else {
-				throw new WrongDataTypeException("Attempted to set " + wpro.Module + "." + s.Name + "to a data type that does not match with " + s.Which.ToString());
+				throw new WrongDataTypeException("Attempted to set " + wpro.ActiveModule + "." + s.Name + "to a data type that does not match with " + s.Which.ToString());
 			}
 		}
 
