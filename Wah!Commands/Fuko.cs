@@ -10,5 +10,17 @@ namespace Wah_Commands {
 		Fuko(string name) : base(name) {
 
 		}
+
+		
+
+		public override void InitializeSettings(ISettings sets) {
+			throw new NotImplementedException();
+		}
+
+		public override IReturn Handle(ICore wah, string line) {
+			string namae = wah.Api.Call("fuko no namae wa?");
+
+			return new NoReturn();
+		}
 	}
 }

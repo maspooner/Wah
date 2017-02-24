@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wah!Core", "Wah!Core\Wah!Core.csproj", "{1E2F9E77-BD60-43EC-96D4-9D9405EA1CF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wah!Interface", "Wah!Interface\Wah!Interface.csproj", "{DC69693B-5857-4C17-9BDF-CD92CA07B1D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wah!Commands", "Wah!Commands\Wah!Commands.csproj", "{1ACD1E7E-C176-4A3D-BED6-B51A78602864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{1E2F9E77-BD60-43EC-96D4-9D9405EA1CF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E2F9E77-BD60-43EC-96D4-9D9405EA1CF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E2F9E77-BD60-43EC-96D4-9D9405EA1CF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC69693B-5857-4C17-9BDF-CD92CA07B1D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC69693B-5857-4C17-9BDF-CD92CA07B1D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC69693B-5857-4C17-9BDF-CD92CA07B1D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC69693B-5857-4C17-9BDF-CD92CA07B1D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ACD1E7E-C176-4A3D-BED6-B51A78602864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ACD1E7E-C176-4A3D-BED6-B51A78602864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ACD1E7E-C176-4A3D-BED6-B51A78602864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ACD1E7E-C176-4A3D-BED6-B51A78602864}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
