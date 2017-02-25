@@ -29,7 +29,7 @@ namespace Wah_Core {
 		}
 
 		public void InitializeModules() {
-			
+			LoadModule("Wah!Commands", "Fuko");
 		}
 
 		public void LoadModule(string name) {
@@ -38,12 +38,12 @@ namespace Wah_Core {
 
 		public void LoadModule(string dllName, string moduleName) {
 			Assembly dll = wah.Disk.LoadAssembly(dllName);
-			foreach(Type t in dll.GetTypes()) {
-				Console.WriteLine(t.ToString());
-			}
 			Type moduleType = dll.GetTypes().First(t => t.Name.Equals(moduleName));
-			AModule module = (AModule)Activator.CreateInstance(moduleType);
-			modules.Add(module);
+			AModule newModule = (AModule)Activator.CreateInstance(moduleType);
+			if (modules.Any(m => m.Name.Equals(newModule.Name))) {
+				throw new ModuleLoadException(moduleName + " module is already loaded");
+			}
+			modules.Add(newModule);
 		}
 
 		public void LoadModuleLibrary(string dllName) {
@@ -51,7 +51,12 @@ namespace Wah_Core {
 		}
 
 		public void UnloadModule(string name) {
-			throw new NotImplementedException();
+			if (modules.Any(m => m.Name.Equals(name))) {
+				modules.Where(m => !m.Name.Equals(name));
+			}
+			else {
+				throw new ModuleLoadException(name + " module is not loaded");
+			}
 		}
 
 		public void BeginListening() {
@@ -123,7 +128,7 @@ namespace Wah_Core {
 		/// Executes the primed command
 		/// </summary>
 		public void Execute() {
-			wah.Log(primedCmd);
+			wah.Log("execute: " + primedCmd);
 			try {
 				//the first part should be a module or system command
 				string firstString = ParseFirst(primedCmd);
@@ -151,6 +156,7 @@ namespace Wah_Core {
 		}
 
 		public void InterruptJob() {
+			wah.Log("死んちゃったｗ");
 			workerThread.Abort();
 			workerThread = new Thread(RunCommandLoop);
 			workerThread.Start();

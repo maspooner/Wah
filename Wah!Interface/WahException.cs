@@ -30,5 +30,10 @@ namespace Wah_Interface {
 
 		}
 	}
+	public class ModuleLoadException : WahException {
+		public ModuleLoadException(string message) : base(message) {
+
+		}
+	}
 
 }
