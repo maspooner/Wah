@@ -1,2 +1,9 @@
 .vs/
 obj/
+
+*.lastcodeanalysissucceeded
+*.pdb
+*CodeAnalysisLog.xml
+*.manifest
+*.dll
+*.exe
