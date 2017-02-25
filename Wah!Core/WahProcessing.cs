@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Wah_Core {
 		private object objLock;
 		private string primedCmd;
 		private Thread workerThread;
-        private IList<AModule> modules;
+		private IList<AModule> modules;
 		public AModule ActiveModule { get; set; }
 
 		public WahProcessing(ICore wah) : base(SYSTEM_MODULE_NAME) {
@@ -27,11 +28,30 @@ namespace Wah_Core {
 			modules = new List<AModule>();
 		}
 
-		public string AwaitRead() {
-			lock (objLock) {
-				Monitor.Wait(objLock);
+		public void InitializeModules() {
+			
+		}
+
+		public void LoadModule(string name) {
+			throw new NotImplementedException();
+		}
+
+		public void LoadModule(string dllName, string moduleName) {
+			Assembly dll = wah.Disk.LoadAssembly(dllName);
+			foreach(Type t in dll.GetTypes()) {
+				Console.WriteLine(t.ToString());
 			}
-			return primedCmd;
+			Type moduleType = dll.GetTypes().First(t => t.Name.Equals(moduleName));
+			AModule module = (AModule)Activator.CreateInstance(moduleType);
+			modules.Add(module);
+		}
+
+		public void LoadModuleLibrary(string dllName) {
+			throw new NotImplementedException();
+		}
+
+		public void UnloadModule(string name) {
+			throw new NotImplementedException();
 		}
 
 		public void BeginListening() {
@@ -47,10 +67,6 @@ namespace Wah_Core {
 					Execute();
 				}
 			}
-		}
-
-		public void LoadModules() {
-			throw new NotImplementedException();
 		}
 
 		public void Prepare(string line) {
@@ -82,35 +98,7 @@ namespace Wah_Core {
 				throw;
 			}
 		}
-		/// <summary>
-		/// Calls the command specified by the line
-		/// </summary>
-		public string Call(string line) {
-			try {
-				//first should be either a module or system command
-				string firstString = ParseFirst(line);
-				//module
-				if (ModuleLoaded(firstString)) {
-					//find the module with that name
-					AModule module = FindModule(firstString);
-					//the rest of the line must be non-empty
-					string notModule = ParseRest(line, false);
-					//module command should follow
-					string cmdName = ParseFirst(notModule);
-					//call the module with the command and arguments (which may be empty)
-					return Call(module, cmdName, ParseRest(notModule, true));
-				}
-				//system command
-				else {
-					//call this module with the command and optional arguments
-					return Call(this, firstString, ParseRest(line, true));
-				}
-			}
-			catch {
-				//continue throwing up the call chain
-				throw;
-			}
-		}
+
 		/// <summary>
 		/// Executes the given command in the given module with the given arguments
 		/// </summary>
@@ -156,7 +144,7 @@ namespace Wah_Core {
 					Execute(this, firstString, ParseRest(primedCmd, true));
 				}
 			}
-			catch(Exception e) {
+			catch (Exception e) {
 				wah.Log(e.Message);
 			}
 			ActiveModule = this;
@@ -174,7 +162,7 @@ namespace Wah_Core {
 			}
 			else {
 				throw new NoSuchItemException("no module named " + name);
-            }
+			}
 		}
 
 		private string ParseFirst(string line) {
@@ -185,7 +173,7 @@ namespace Wah_Core {
 		private string ParseRest(string line, bool allowEmpty) {
 			line = line.Trim();
 			int space = line.IndexOf(' ');
-			if(space < 0) {
+			if (space < 0) {
 				if (allowEmpty) {
 					return "";
 				}
@@ -198,12 +186,66 @@ namespace Wah_Core {
 			}
 		}
 
+
+		////////////////////////////////////////////////////////////////////////////////
+		////  IApi methods
+		////////////////////////////////////////////////////////////////////////////////
+		
+		/// <summary>
+		/// Is the module with the given name loaded?
+		/// </summary>
 		public bool ModuleLoaded(string module) {
 			return modules.Any(a => a.Name.Equals(module));
 		}
+		/// <summary>
+		/// Calls the command specified by the line
+		/// </summary>
+		public string Call(string line) {
+			try {
+				//first should be either a module or system command
+				string firstString = ParseFirst(line);
+				//module
+				if (ModuleLoaded(firstString)) {
+					//find the module with that name
+					AModule module = FindModule(firstString);
+					//the rest of the line must be non-empty
+					string notModule = ParseRest(line, false);
+					//module command should follow
+					string cmdName = ParseFirst(notModule);
+					//call the module with the command and arguments (which may be empty)
+					return Call(module, cmdName, ParseRest(notModule, true));
+				}
+				//system command
+				else {
+					//call this module with the command and optional arguments
+					return Call(this, firstString, ParseRest(line, true));
+				}
+			}
+			catch {
+				//continue throwing up the call chain
+				throw;
+			}
+		}
+		/// <summary>
+		/// Executes the command specified by the given line
+		/// </summary>
+		public void Execute(string line) {
+			primedCmd = line;
+			Execute();
+		}
+
+		/// <summary>
+		/// Blocks the current thread, waiting for user input to return to the command
+		/// </summary>
+		public string AwaitRead() {
+			lock (objLock) {
+				Monitor.Wait(objLock);
+			}
+			return primedCmd;
+		}
 
 		////////////////////////////////////////////////////////////////////////////////
-		///  AModule methods
+		////  AModule methods
 		////////////////////////////////////////////////////////////////////////////////
 		public override Dictionary<string, CommandDelegate> InitializeCommands() {
 			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
@@ -214,9 +256,10 @@ namespace Wah_Core {
 		public override void InitializeSettings(ISettings sets) {
 			throw new NotImplementedException();
 		}
-
+		/************************************************
+		***  Commands
+		*************************************************/
 		private IReturn Cmd_Wah(ICore wah, string args) {
-			wah.Log("Wah!");
 			return new StringReturn("Wah!");
 		}
 
@@ -224,6 +267,7 @@ namespace Wah_Core {
 			wah.Log("Wah?");
 			string w = wah.Api.Call("wah!");
 			wah.Log(w);
+			wah.Api.Execute("wah!");
 			return new StringReturn(w);
 		}
 

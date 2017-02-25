@@ -19,8 +19,11 @@ namespace Wah_Interface {
 
 		//prohibit access
 		AModule ActiveModule { get; set; }
-		void LoadModules();
-		bool ModuleLoaded(string module);
+		void InitializeModules();
+		void LoadModule(string dllName, string moduleName);
+		void LoadModuleLibrary(string dllName);
+		void LoadModule(string name);
+		void UnloadModule(string name);
 		AModule FindModule(string name);
 		void BeginListening();
 		void RunCommandLoop();
@@ -29,9 +32,14 @@ namespace Wah_Interface {
 		void Execute();
 		
 	}
+	/// <summary>
+	/// Represents an interface with the command processor that gives modules access to its features
+	/// </summary>
 	public interface IApi {
 		//allow access
+		bool ModuleLoaded(string module);
 		string Call(string line);
+		void Execute(string line);
 		string AwaitRead();
 	}
 	public interface IDisplay {
@@ -47,8 +55,11 @@ namespace Wah_Interface {
 		void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
 		void RunShutdownOperations();
+		System.Reflection.Assembly LoadAssembly(string name);
 	}
 	public interface ISettings {
+		void LoadSettings(string module);
+		void UnloadSettings(string module);
 		void RegisterSetting(string name, string defValue, SettingType type);
 		void Set(string name, string content);
 		string GetString(string name);

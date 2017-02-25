@@ -10,16 +10,19 @@ using Wah_Interface;
 namespace Wah_Core {
 	internal class Program : ICore {
 
-		private WahSettings wsets;
-		private WahProcessing wpro;
 		
+		private WahProcessing wpro;
+		private WahDisk wdisk;
+		private WahSettings wsets;
 		private WahWindow wwind;
 		
 
 		private Program() {
-			//wsets = new WahSettings();
+			wdisk = new WahDisk();
 			//Get the processor warmed up with the core wah!
 			wpro = new WahProcessing(this);
+			
+			wsets = new WahSettings(wpro, wdisk);
 			//Create the ui with access to the processor
 			wwind = new WahWindow(wpro);
 		}
@@ -45,8 +48,9 @@ namespace Wah_Core {
 		}
 
 		public void Log(string line) {
-			
-			Console.WriteLine("[" + DateTime.Now.ToLongTimeString() + "] : " + line);
+			string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff",
+											System.Globalization.CultureInfo.InvariantCulture);
+			Console.WriteLine("[" + time + "] : " + line);
 		}
 		public IApi Api { get { return wpro; } }
 		public IAudio Audio {
@@ -54,20 +58,8 @@ namespace Wah_Core {
 				throw new NotImplementedException();
 			}
 		}
-
 		public IDisplay Display { get { return wwind; } }
-		
-
-		public IDisk Disk {
-			get {
-				throw new NotImplementedException();
-			}
-		}
-
-		public ISettings Settings {
-			get {
-				throw new NotImplementedException();
-			}
-		}
+		public IDisk Disk { get { return wdisk; } }
+		public ISettings Settings { get { return wsets; } }
 	}
 }

@@ -6,17 +6,28 @@ using System.Threading.Tasks;
 using Wah_Interface;
 
 namespace Wah_Commands {
-	class Fuko : AModule {
-		Fuko(string name) : base(name) {
+	public class Fuko : AModule {
+		private const string FUKO_NO_NAMAE = "fuko";
+		public Fuko() : base(FUKO_NO_NAMAE) {
 
 		}
 
 		public override Dictionary<string, CommandDelegate> InitializeCommands() {
-			throw new NotImplementedException();
+			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
+			cmds.Add("namae", Cmd_Namae);
+			return cmds;
 		}
 
 		public override void InitializeSettings(ISettings sets) {
 			throw new NotImplementedException();
+		}
+
+		/************************************************
+		***  Commands
+		*************************************************/
+		private IReturn Cmd_Namae(ICore wah, string args) {
+			wah.Log("FUKO MODULE DESU");
+			return new StringReturn("Fuko desu yo~!");
 		}
 
 	}

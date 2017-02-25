@@ -13,6 +13,7 @@ namespace Wah_Core {
 		public WahSettings(IProcessor wpro, IDisk wdisk) {
 			this.wpro = wpro;
 			this.wdisk = wdisk;
+			this.settings = new Dictionary<string, IList<Setting>>();
 		}
 
 		public bool GetBool(string name) {
@@ -59,6 +60,14 @@ namespace Wah_Core {
 		}
 
 		public byte[] ToBytes() {
+			throw new NotImplementedException();
+		}
+
+		public void LoadSettings(string module) {
+			throw new NotImplementedException();
+		}
+
+		public void UnloadSettings(string module) {
 			throw new NotImplementedException();
 		}
 	}
