@@ -27,7 +27,7 @@ namespace Wah_Commands {
 		***  Commands
 		*************************************************/
 		private IReturn Cmd_Namae(ICore wah, string[] args) {
-			wah.Log("FUKO MODULE DESU");
+			wah.Put("FUKO MODULE DESU");
 			return new StringReturn("Fuko desu yo~!");
 		}
 

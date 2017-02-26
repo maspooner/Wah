@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 namespace Wah_Interface {
 	/// <summary>
@@ -11,6 +12,9 @@ namespace Wah_Interface {
 		IDisk Disk { get; }
 		ISettings Settings { get; }
 		void Log(string line);
+		void Put(string txt);
+		void PutErr(string err);
+		void Put(string txt, Color col);
 	}
 	/// <summary>
 	/// Represents the main Wah! command processor that handles the REPL and deligation of commands to modules
@@ -43,9 +47,9 @@ namespace Wah_Interface {
 		string AwaitRead();
 	}
 	public interface IDisplay {
-		void ShowPersona(System.Drawing.Bitmap persona);
+		void ShowPersona(Bitmap persona);
 		void ShowTitle(string title);
-		void Print(string txt);
+		void Print(string txt, Color col);
 
 	}
 	public interface IAudio {

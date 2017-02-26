@@ -11,31 +11,33 @@ namespace Wah_Core {
 	internal class WahWindow : Form, IDisplay {
 		private IProcessor wpro;
 		private TextBox inputBox;
+		private RichTextBox outputBox;
 		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
-			this.inputBox = new TextBox();
+			inputBox = new TextBox();
+			outputBox = new RichTextBox();
 			SuspendLayout();
-			// 
-			// textBox1
-			// 
+			//inputBox 
 			inputBox.BackColor = SystemColors.ControlDark;
 			inputBox.BorderStyle = BorderStyle.FixedSingle;
-			inputBox.Location = new Point(60, 12);
+			inputBox.Location = new Point(380, 299);
 			inputBox.Size = new Size(200, 20);
 			inputBox.TabIndex = 0;
 			inputBox.ForeColor = Color.White;
 			inputBox.Font = new Font(inputBox.Font, FontStyle.Bold);
 			inputBox.AcceptsReturn = true;
 			inputBox.PreviewKeyDown += TextBox_KeyDown;
-			// 
-			// MainForm
-			// 
+			//outputBox
+			outputBox.ReadOnly = true;
+			outputBox.BackColor = Color.Black;
+			outputBox.ForeColor = Color.White;
+			outputBox.Size = new Size(400, 300);
+			// this
 			this.AutoScaleDimensions = new SizeF(6F, 13F);
 			this.AutoScaleMode = AutoScaleMode.Font;
 			this.BackColor = SystemColors.ControlDarkDark;
-			this.ClientSize = new Size(284, 45);
+			this.ClientSize = new Size(600, 300);
 			this.ControlBox = false;
-			this.Controls.Add(this.inputBox);
 			this.FormBorderStyle = FormBorderStyle.None;
 			this.Name = "Wah!";
 			this.ShowIcon = false;
@@ -45,6 +47,9 @@ namespace Wah_Core {
 			this.TopMost = true;
 			//this.Activated += MainForm_Activate;
 			//this.Deactivate += MainForm_Deactivate;
+
+			this.Controls.Add(this.inputBox);
+			this.Controls.Add(this.outputBox);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 			ResumeLayout();
@@ -69,8 +74,13 @@ namespace Wah_Core {
 			}
 		}
 
-		public void Print(string txt) {
-			throw new NotImplementedException();
+		public void Print(string txt, Color col) {
+			if (outputBox.InvokeRequired) {
+				outputBox.Invoke(new MethodInvoker(delegate {
+					outputBox.SelectionColor = col;
+					outputBox.AppendText(txt + "\n");
+				}));
+			}
 		}
 
 		public void ShowPersona(Bitmap persona) {

@@ -63,5 +63,17 @@ namespace Wah_Core {
 		public IDisplay Display { get { return wwind; } }
 		public IDisk Disk { get { return wdisk; } }
 		public ISettings Settings { get { return wsets; } }
+
+		public void Put(string txt) {
+			Display.Print(txt, System.Drawing.Color.White);
+		}
+
+		public void PutErr(string err) {
+			Display.Print(err, System.Drawing.Color.Red);
+		}
+
+		public void Put(string txt, System.Drawing.Color col) {
+			Display.Print(txt, col);
+		}
 	}
 }

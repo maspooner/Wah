@@ -143,7 +143,7 @@ namespace Wah_Core {
 		/// Executes the primed command
 		/// </summary>
 		public void Execute() {
-			wah.Log("execute: " + primedCmd);
+			wah.Put("execute: " + primedCmd);
 			try {
 				//the first part should be a module or system command
 				string firstString = ParseFirst(primedCmd);
@@ -166,16 +166,16 @@ namespace Wah_Core {
 			}
 			//top level exception handling
 			catch(UnhandledException ue) {
-				wah.Log("Wah! Error");
-				wah.Log(ue.GetMessages());
+				wah.PutErr("Wah! Error");
+				wah.PutErr(ue.GetInnerMessages());
 			}
 			catch (AWahException waex) {
-				wah.Log("Wah! Error");
-				wah.Log(waex.GetMessages());
+				wah.PutErr("Wah! Error");
+				wah.PutErr(waex.GetInnerMessages());
 			}
 			catch (Exception ex) {
-				wah.Log("Wah! Error");
-				wah.Log(ex.StackTrace);
+				wah.PutErr("Wah! Error");
+				wah.PutErr(ex.StackTrace);
 			}
 			ActiveModule = this;
 		}
@@ -185,7 +185,7 @@ namespace Wah_Core {
 		}
 
 		public void InterruptJob() {
-			wah.Log("死んちゃったｗ");
+			wah.PutErr("死んちゃったｗ");
 			workerThread.Abort();
 			workerThread = new Thread(RunCommandLoop);
 			workerThread.Start();
@@ -298,9 +298,9 @@ namespace Wah_Core {
 		}
 
 		private IReturn Cmd_WahHuh(ICore wah, string[] args) {
-			wah.Log("Wah?");
+			wah.Put("Wah?", System.Drawing.Color.Yellow);
 			string w = wah.Api.Call("wah!").AsString();
-			wah.Log(w);
+			wah.Put(w);
 			wah.Api.Execute("wah!");
 			return new StringReturn(w);
 		}
@@ -308,13 +308,13 @@ namespace Wah_Core {
 		private IReturn Cmd_Cmdlist(ICore wah, string[] args) {
 			if(args.Length == 0) {
 				foreach(string cmd in this.Commands.Select(pair => pair.Key)) {
-					wah.Log(cmd);
+					wah.Put(cmd);
 				}
 			}
 			else if(args.Length == 1) {
 				string module = args[0];
 				foreach (string cmd in FindModule(module).Commands.Select(pair => pair.Key)) {
-					wah.Log(cmd);
+					wah.Put(cmd);
 				}
 			}
 			else {
@@ -329,7 +329,7 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Chain1(ICore wah, string[] args) {
 			int i = wah.Api.Call("chn2").AsInt();
-			wah.Log("i: " + i);
+			wah.Put("i: " + i);
 			return new NoReturn();
 		}
 

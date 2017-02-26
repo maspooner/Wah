@@ -15,6 +15,14 @@ namespace Wah_Interface {
 		public string GetMessages() {
 			return GetMessages(this, 0);
 		}
+		public string GetInnerMessages() {
+			if(InnerException == null) {
+				return "";
+			}
+			else {
+				return GetMessages(InnerException, 0);
+			}
+		}
 		protected string GetMessages(Exception ex, int tabs) {
 			string sTabs = new string(' ', tabs * 2);
 			if (ex.InnerException == null) {
