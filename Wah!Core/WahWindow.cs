@@ -20,7 +20,7 @@ namespace Wah_Core {
 			//inputBox 
 			inputBox.BackColor = SystemColors.ControlDark;
 			inputBox.BorderStyle = BorderStyle.FixedSingle;
-			inputBox.Location = new Point(380, 299);
+			inputBox.Location = new Point(380, 199);
 			inputBox.Size = new Size(200, 20);
 			inputBox.TabIndex = 0;
 			inputBox.ForeColor = Color.White;

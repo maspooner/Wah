@@ -281,7 +281,10 @@ namespace Wah_Core {
 			cmds.Add("wah!", Cmd_Wah);
 			cmds.Add("wah?", Cmd_WahHuh);
 			cmds.Add("cmdlist", Cmd_Cmdlist);
+			cmds.Add("modlist", Cmd_Modlist);
 			cmds.Add("help", Cmd_Help);
+			cmds.Add("call", Cmd_Call);
+
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
 			cmds.Add("chn3", Cmd_Chain3);
@@ -308,13 +311,13 @@ namespace Wah_Core {
 		private IReturn Cmd_Cmdlist(ICore wah, string[] args) {
 			if(args.Length == 0) {
 				foreach(string cmd in this.Commands.Select(pair => pair.Key)) {
-					wah.Put(cmd);
+					wah.Put(cmd, System.Drawing.Color.Yellow);
 				}
 			}
 			else if(args.Length == 1) {
 				string module = args[0];
 				foreach (string cmd in FindModule(module).Commands.Select(pair => pair.Key)) {
-					wah.Put(cmd);
+					wah.Put(cmd, System.Drawing.Color.Yellow);
 				}
 			}
 			else {
@@ -323,9 +326,46 @@ namespace Wah_Core {
 			return new NoReturn();
 		}
 
+		private IReturn Cmd_Modlist(ICore wah, string[] args) {
+			if (args.Length == 0) {
+				foreach (AModule m in modules) {
+					wah.Put(m.Name, System.Drawing.Color.Yellow);
+				}
+			}
+			else {
+				throw new IllformedInputException("Wrong number of arguments");
+			}
+			return new NoReturn();
+		}
+
+		private IReturn Cmd_Call(ICore wah, string[] args) {
+			IReturn call = wah.Api.Call(string.Join(" ", args));
+            wah.Put(call.AsString());
+			return call;
+		}
+
 		private IReturn Cmd_Help(ICore wah, string[] args) {
+			if(args.Length == 0) {
+
+			}
 			throw new NotImplementedException();
 		}
+
+		//private IReturn Cmd_Config(ICore wah, string[] args) {
+		//	if(args.Length <= 1) {
+		//		throw new IllformedInputException("Wrong number of arguments");
+		//	}
+		//	else if (args.Length == 2) {
+		//		// config set fuko.partyhat true
+		//		// config get fuko.partyhat
+		//		// config get .globalparty true
+
+		//	}
+		//	else {
+		//		throw new IllformedInputException("Wrong number of arguments");
+		//	}
+		//	return new NoReturn();
+		//}
 
 		private IReturn Cmd_Chain1(ICore wah, string[] args) {
 			int i = wah.Api.Call("chn2").AsInt();

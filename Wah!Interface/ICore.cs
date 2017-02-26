@@ -20,7 +20,6 @@ namespace Wah_Interface {
 	/// Represents the main Wah! command processor that handles the REPL and deligation of commands to modules
 	/// </summary>
 	public interface IProcessor {
-
 		//prohibit access
 		AModule ActiveModule { get; set; }
 		void InitializeModules();
@@ -62,14 +61,17 @@ namespace Wah_Interface {
 		System.Reflection.Assembly LoadAssembly(string name);
 	}
 	public interface ISettings {
-		void LoadSettings(string module);
-		void UnloadSettings(string module);
+		//allow access
 		void RegisterSetting(string name, string defValue, SettingType type);
-		void Set(string name, string content);
+		
 		string GetString(string name);
 		int GetInt(string name);
 		bool GetBool(string name);
+		//prohibit access
+		void LoadSettings(string module);
+		void UnloadSettings(string module);
 		byte[] ToBytes();
+		void Set(string name, string content);
 	}
 	public class Setting {
 		public string Name { get; set; }
