@@ -22,15 +22,7 @@ namespace Wah_Interface {
 			}
 		}
 		public void Execute(ICore wah, string cmd, string args) {
-			try {
-				Handle(wah, cmd, args);
-			}
-			catch (WahException we) {
-				wah.Log(we.Message);
-			}
-			catch (Exception e) {
-				wah.Log(e.Message);
-			}
+			Handle(wah, cmd, args);
 		}
 		public string Call(ICore wah, string cmd, string args) {
 			return Handle(wah, cmd, args).Accept(new ReturnToString());

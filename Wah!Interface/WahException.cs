@@ -9,6 +9,9 @@ namespace Wah_Interface {
 		public WahException(string message) : base(message) {
 
 		}
+		public WahException(string message, Exception innerException) : base(message, innerException) {
+
+		}
 	}
 	internal class NoReturnException : WahException {
 		public NoReturnException() : base("") {
@@ -32,6 +35,12 @@ namespace Wah_Interface {
 	}
 	public class ModuleLoadException : WahException {
 		public ModuleLoadException(string message) : base(message) {
+
+		}
+	}
+	public class CallFailedException : WahException {
+		public CallFailedException(string message, Exception innerException) 
+			: base(message, innerException) {
 
 		}
 	}

@@ -96,11 +96,17 @@ namespace Wah_Core {
 				//return the call
 				return callResult;
 			}
-			catch {
-				//switch back to the parent
+			catch (WahException waex) {
+				//switch the module back to the parent module
 				ActiveModule = parentModule;
-				//throw up the call chain
-				throw;
+				//throw back up the call chain
+				throw new CallFailedException("Error in call to module: " + mod.Name, waex);
+			}
+			catch (Exception ex) {
+				//switch the module back to the parent module
+				ActiveModule = parentModule;
+				//throw back up the call chain
+				throw new CallFailedException("Unhandled Exception thrown in: " + mod.Name + " 大変です", ex);
 			}
 		}
 
@@ -117,11 +123,17 @@ namespace Wah_Core {
 				//switch the module back to the parent module
 				ActiveModule = beforeModule;
 			}
-			catch {
+			catch(WahException waex) {
 				//switch the module back to the parent module
 				ActiveModule = beforeModule;
 				//throw back up the call chain
-				throw;
+				throw new CallFailedException("Error thrown in: " + mod.Name, waex);
+			}
+			catch(Exception ex) {
+				//switch the module back to the parent module
+				ActiveModule = beforeModule;
+				//throw back up the call chain
+				throw new CallFailedException("Unhandled Exception thrown in: " + mod.Name + " 大変です", ex);
 			}
 		}
 		/// <summary>
@@ -149,8 +161,12 @@ namespace Wah_Core {
 					Execute(this, firstString, ParseRest(primedCmd, true));
 				}
 			}
-			catch (Exception e) {
-				wah.Log(e.Message);
+			//top level exception handling
+			catch(WahException waex) {
+				wah.Log(waex.StackTrace);
+			}
+			catch (Exception ex) {
+				wah.Log(ex.StackTrace);
 			}
 			ActiveModule = this;
 		}
@@ -287,13 +303,8 @@ namespace Wah_Core {
 			}
 			else if(args.Length == 1) {
 				string module = args[0];
-				if (ModuleLoaded(module)) {
-					foreach (string cmd in this.FindModule(module).Commands.Select(pair => pair.Key)) {
-						wah.Log(cmd);
-					}
-				}
-				else {
-					throw new IllformedInputException("no module " + module + " found for cmdlist");
+				foreach (string cmd in FindModule(module).Commands.Select(pair => pair.Key)) {
+					wah.Log(cmd);
 				}
 			}
 			else {
