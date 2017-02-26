@@ -257,6 +257,8 @@ namespace Wah_Core {
 			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
 			cmds.Add("wah!", Cmd_Wah);
 			cmds.Add("wah?", Cmd_WahHuh);
+			cmds.Add("cmdlist", Cmd_Cmdlist);
+			cmds.Add("help", Cmd_Help);
 			return cmds;
 		}
 		public override void InitializeSettings(ISettings sets) {
@@ -265,11 +267,11 @@ namespace Wah_Core {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Wah(ICore wah, string args) {
+		private IReturn Cmd_Wah(ICore wah, string[] args) {
 			return new StringReturn("Wah!");
 		}
 
-		private IReturn Cmd_WahHuh(ICore wah, string args) {
+		private IReturn Cmd_WahHuh(ICore wah, string[] args) {
 			wah.Log("Wah?");
 			string w = wah.Api.Call("wah!");
 			wah.Log(w);
@@ -277,6 +279,33 @@ namespace Wah_Core {
 			return new StringReturn(w);
 		}
 
-		
+		private IReturn Cmd_Cmdlist(ICore wah, string[] args) {
+			if(args.Length == 0) {
+				foreach(string cmd in this.Commands.Select(pair => pair.Key)) {
+					wah.Log(cmd);
+				}
+			}
+			else if(args.Length == 1) {
+				string module = args[0];
+				if (ModuleLoaded(module)) {
+					foreach (string cmd in this.FindModule(module).Commands.Select(pair => pair.Key)) {
+						wah.Log(cmd);
+					}
+				}
+				else {
+					throw new IllformedInputException("no module " + module + " found for cmdlist");
+				}
+			}
+			else {
+				throw new IllformedInputException("Wrong number of arguments");
+			}
+			return new NoReturn();
+		}
+
+		private IReturn Cmd_Help(ICore wah, string[] args) {
+			throw new NotImplementedException();
+		}
+
+
 	}
 }
