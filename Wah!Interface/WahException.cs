@@ -5,41 +5,61 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Wah_Interface {
-	public class WahException : Exception {
-		public WahException(string message) : base(message) {
+	public abstract class AWahException : Exception {
+		public AWahException(string message) : base(message) {
 
 		}
-		public WahException(string message, Exception innerException) : base(message, innerException) {
+		public AWahException(string message, Exception innerException) : base(message, innerException) {
+
+		}
+		public string GetMessages() {
+			return GetMessages(this, 0);
+		}
+		protected string GetMessages(Exception ex, int tabs) {
+			string sTabs = new string(' ', tabs * 2);
+			if (ex.InnerException == null) {
+				return sTabs + ex.Message;
+			}
+			else {
+				return sTabs + ex.Message + "\n" + GetMessages(ex.InnerException, tabs + 1);
+			}
+		}
+	}
+	internal class NoReturnException : AWahException {
+		public NoReturnException() : base("Attempted to use the value of a call to a command with no return value") {
 
 		}
 	}
-	internal class NoReturnException : WahException {
-		public NoReturnException() : base("") {
-
-		}
-	}
-	public class NoSuchItemException : WahException {
+	public class NoSuchItemException : AWahException {
 		public NoSuchItemException(string message) : base(message) {
 
 		}
 	}
-	public class WrongDataTypeException : WahException {
+	public class WrongDataTypeException : AWahException {
 		public WrongDataTypeException(string message) : base(message) {
 
 		}
 	}
-	public class IllformedInputException : WahException {
+	public class IllformedInputException : AWahException {
 		public IllformedInputException(string message) : base(message) {
 
 		}
 	}
-	public class ModuleLoadException : WahException {
+	public class ModuleLoadException : AWahException {
 		public ModuleLoadException(string message) : base(message) {
 
 		}
 	}
-	public class CallFailedException : WahException {
-		public CallFailedException(string message, Exception innerException) 
+
+	//Chain exceptions
+	public class CallFailedException : AWahException {
+		public CallFailedException(string message, AWahException innerException) 
+			: base(message, innerException) {
+
+		}
+	}
+	public class UnhandledException : AWahException {
+		public UnhandledException(string message, Exception innerException) 
 			: base(message, innerException) {
 
 		}

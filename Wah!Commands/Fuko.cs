@@ -32,7 +32,7 @@ namespace Wah_Commands {
 		}
 
 		private IReturn Cmd_HitodeKangaeru(ICore wah, string[] args) {
-			while (true) ;
+			while (true);
 		}
 
 	}

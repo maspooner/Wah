@@ -6,20 +6,21 @@ using System.Threading.Tasks;
 
 namespace Wah_Interface {
 	public interface IReturn {
-		R Accept<R>(IReturnVisitor<R> visitor);
+		string AsString();
+		int AsInt();
+		bool AsBool();
 	}
 	public class NoReturn : IReturn {
-		public R Accept<R>(IReturnVisitor<R> visitor) {
-			return visitor.VisitNone(this);
+		public bool AsBool() {
+			throw new NoReturnException();
 		}
-	}
-	public class ErrorReturn : IReturn {
-		public WahException Exception { get; private set; }
-		public ErrorReturn(WahException exception) {
-			Exception = exception;
+
+		public int AsInt() {
+			throw new NoReturnException();
 		}
-		public R Accept<R>(IReturnVisitor<R> visitor) {
-			return visitor.VisitError(this);
+
+		public string AsString() {
+			throw new NoReturnException();
 		}
 	}
 	public class StringReturn : IReturn {
@@ -27,31 +28,65 @@ namespace Wah_Interface {
 		public StringReturn(string value) {
 			Value = value;
 		}
-		public R Accept<R>(IReturnVisitor<R> visitor) {
-			return visitor.VisitString(this);
-		}
-	}
-	public interface IReturnVisitor<R> {
-		R Visit(IReturn ir);
-		R VisitNone(NoReturn nr);
-		R VisitError(ErrorReturn er);
-		R VisitString(StringReturn sr);
-	}
-	public class ReturnToString : IReturnVisitor<string> {
-		public string Visit(IReturn ir) {
-			return ir.Accept(this);
+		public bool AsBool() {
+			bool b = false;
+			if (bool.TryParse(Value, out b)) {
+				return b;
+			}
+			else {
+				throw new IllformedInputException("data " + Value + " cannot be cast to a bool");
+			}
 		}
 
-		public string VisitError(ErrorReturn er) {
-			throw er.Exception;
+		public int AsInt() {
+			int o = 0;
+			if (int.TryParse(Value, out o)) {
+				return o;
+			}
+			else {
+				throw new IllformedInputException("data " + Value + " cannot be cast to an int");
+			}
 		}
 
-		public string VisitNone(NoReturn nr) {
-			throw new NoReturnException();
-		}
-
-		public string VisitString(StringReturn sr) {
-			return sr.Value;
+		public string AsString() {
+			return Value;
 		}
 	}
+	public class IntReturn : IReturn {
+		public int Value { get; private set; }
+		public IntReturn(int value) {
+			Value = value;
+		}
+
+		public string AsString() {
+			return Value.ToString();
+		}
+
+		public int AsInt() {
+			return Value;
+		}
+
+		public bool AsBool() {
+			return Value != 0;
+		}
+	}
+	public class BoolReturn : IReturn {
+		public bool Value { get; private set; }
+		public BoolReturn(bool value) {
+			Value = value;
+		}
+
+		public string AsString() {
+			return Value.ToString();
+		}
+
+		public int AsInt() {
+			return Value ? 1 : 0;
+		}
+
+		public bool AsBool() {
+			return Value;
+		}
+	}
+
 }

@@ -24,8 +24,8 @@ namespace Wah_Interface {
 		public void Execute(ICore wah, string cmd, string args) {
 			Handle(wah, cmd, args);
 		}
-		public string Call(ICore wah, string cmd, string args) {
-			return Handle(wah, cmd, args).Accept(new ReturnToString());
+		public IReturn Call(ICore wah, string cmd, string args) {
+			return Handle(wah, cmd, args);
 		}
 
 	}

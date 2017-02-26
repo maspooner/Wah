@@ -84,29 +84,30 @@ namespace Wah_Core {
 		/// Calls the specified module with the given command and arguments
 		/// </summary>
 		/// <returns>The return value of the call</returns>
-		private string Call(AModule mod, string cmd, string args) {
+		private IReturn Call(AModule mod, string cmd, string args) {
 			//save the module before and switch the active module to the given module
 			AModule parentModule = ActiveModule;
 			ActiveModule = mod;
 			try {
 				//call the function in the context of the given module
-				string callResult = mod.Call(wah, cmd, args);
+				IReturn callResult = mod.Call(wah, cmd, args);
 				//switch the module back to the parent module
 				ActiveModule = parentModule;
 				//return the call
 				return callResult;
 			}
-			catch (WahException waex) {
+			catch (AWahException waex) {
 				//switch the module back to the parent module
 				ActiveModule = parentModule;
 				//throw back up the call chain
-				throw new CallFailedException("Error in call to module: " + mod.Name, waex);
+				throw new CallFailedException("Error in call to module: " + mod.Name + " with call to " + MashCommand(cmd, args), waex);
 			}
 			catch (Exception ex) {
 				//switch the module back to the parent module
 				ActiveModule = parentModule;
 				//throw back up the call chain
-				throw new CallFailedException("Unhandled Exception thrown in: " + mod.Name + " 大変です", ex);
+				throw new UnhandledException("Unhandled Exception thrown in: " + mod.Name
+					+ " with call to " + MashCommand(cmd, args) + " 大変です", ex);
 			}
 		}
 
@@ -115,25 +116,27 @@ namespace Wah_Core {
 		/// </summary>
 		private void Execute(AModule mod, string cmd, string args) {
 			//save the module before and switch the active module to the given module
-			AModule beforeModule = ActiveModule;
+			AModule parentModule = ActiveModule;
 			ActiveModule = mod;
 			try {
 				//execute the command in the module
 				mod.Execute(wah, cmd, args);
 				//switch the module back to the parent module
-				ActiveModule = beforeModule;
+				ActiveModule = parentModule;
 			}
-			catch(WahException waex) {
+			catch (AWahException waex) {
 				//switch the module back to the parent module
-				ActiveModule = beforeModule;
+				ActiveModule = parentModule;
 				//throw back up the call chain
-				throw new CallFailedException("Error thrown in: " + mod.Name, waex);
+				throw new CallFailedException("Error in executing module: " + mod.Name
+					+ " with call to " + MashCommand(cmd, args), waex);
 			}
-			catch(Exception ex) {
+			catch (Exception ex) {
 				//switch the module back to the parent module
-				ActiveModule = beforeModule;
+				ActiveModule = parentModule;
 				//throw back up the call chain
-				throw new CallFailedException("Unhandled Exception thrown in: " + mod.Name + " 大変です", ex);
+				throw new UnhandledException("Unhandled Exception thrown in: " + mod.Name
+					+ " with call to " + MashCommand(cmd, args) + " 大変です", ex);
 			}
 		}
 		/// <summary>
@@ -162,13 +165,23 @@ namespace Wah_Core {
 				}
 			}
 			//top level exception handling
-			catch(WahException waex) {
-				wah.Log(waex.StackTrace);
+			catch(UnhandledException ue) {
+				wah.Log("Wah! Error");
+				wah.Log(ue.GetMessages());
+			}
+			catch (AWahException waex) {
+				wah.Log("Wah! Error");
+				wah.Log(waex.GetMessages());
 			}
 			catch (Exception ex) {
+				wah.Log("Wah! Error");
 				wah.Log(ex.StackTrace);
 			}
 			ActiveModule = this;
+		}
+
+		private string MashCommand(string cmd, string args) {
+			return "\"" + (args.Length == 0 ? cmd : cmd + " " + args) + "\"";
 		}
 
 		public void InterruptJob() {
@@ -222,30 +235,24 @@ namespace Wah_Core {
 		/// <summary>
 		/// Calls the command specified by the line
 		/// </summary>
-		public string Call(string line) {
-			try {
-				//first should be either a module or system command
-				string firstString = ParseFirst(line);
-				//module
-				if (ModuleLoaded(firstString)) {
-					//find the module with that name
-					AModule module = FindModule(firstString);
-					//the rest of the line must be non-empty
-					string notModule = ParseRest(line, false);
-					//module command should follow
-					string cmdName = ParseFirst(notModule);
-					//call the module with the command and arguments (which may be empty)
-					return Call(module, cmdName, ParseRest(notModule, true));
-				}
-				//system command
-				else {
-					//call this module with the command and optional arguments
-					return Call(this, firstString, ParseRest(line, true));
-				}
+		public IReturn Call(string line) {
+			//first should be either a module or system command
+			string firstString = ParseFirst(line);
+			//module
+			if (ModuleLoaded(firstString)) {
+				//find the module with that name
+				AModule module = FindModule(firstString);
+				//the rest of the line must be non-empty
+				string notModule = ParseRest(line, false);
+				//module command should follow
+				string cmdName = ParseFirst(notModule);
+				//call the module with the command and arguments (which may be empty)
+				return Call(module, cmdName, ParseRest(notModule, true));
 			}
-			catch {
-				//continue throwing up the call chain
-				throw;
+			//system command
+			else {
+				//call this module with the command and optional arguments
+				return Call(this, firstString, ParseRest(line, true));
 			}
 		}
 		/// <summary>
@@ -275,6 +282,9 @@ namespace Wah_Core {
 			cmds.Add("wah?", Cmd_WahHuh);
 			cmds.Add("cmdlist", Cmd_Cmdlist);
 			cmds.Add("help", Cmd_Help);
+			cmds.Add("chn1", Cmd_Chain1);
+			cmds.Add("chn2", Cmd_Chain2);
+			cmds.Add("chn3", Cmd_Chain3);
 			return cmds;
 		}
 		public override void InitializeSettings(ISettings sets) {
@@ -289,7 +299,7 @@ namespace Wah_Core {
 
 		private IReturn Cmd_WahHuh(ICore wah, string[] args) {
 			wah.Log("Wah?");
-			string w = wah.Api.Call("wah!");
+			string w = wah.Api.Call("wah!").AsString();
 			wah.Log(w);
 			wah.Api.Execute("wah!");
 			return new StringReturn(w);
@@ -315,6 +325,27 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Help(ICore wah, string[] args) {
 			throw new NotImplementedException();
+		}
+
+		private IReturn Cmd_Chain1(ICore wah, string[] args) {
+			int i = wah.Api.Call("chn2").AsInt();
+			wah.Log("i: " + i);
+			return new NoReturn();
+		}
+
+		private IReturn Cmd_Chain2(ICore wah, string[] args) {
+			bool b = wah.Api.Call("chn3 true").AsBool();
+			return new IntReturn(b ? 5 : 6);
+		}
+
+		private IReturn Cmd_Chain3(ICore wah, string[] args) {
+			if(args.Length == 0) {
+				return new NoReturn();
+			}
+			else {
+				throw new Exception("FATAL ERROR");
+				return new BoolReturn(true);
+			}
 		}
 
 
