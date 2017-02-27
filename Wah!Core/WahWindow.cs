@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Wah_Interface;
 
@@ -12,16 +8,20 @@ namespace Wah_Core {
 		private IProcessor wpro;
 		private TextBox inputBox;
 		private RichTextBox outputBox;
+		private PictureBox topPic;
+		private PictureBox botPic;
 		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
 			inputBox = new TextBox();
 			outputBox = new RichTextBox();
+			topPic = new PictureBox();
+			botPic = new PictureBox();
 			SuspendLayout();
 			//inputBox 
-			inputBox.BackColor = SystemColors.ControlDark;
+			inputBox.BackColor = Color.DarkSlateBlue;
 			inputBox.BorderStyle = BorderStyle.FixedSingle;
-			inputBox.Location = new Point(380, 199);
-			inputBox.Size = new Size(200, 20);
+			inputBox.Location = new Point(5, 305);
+			inputBox.Size = new Size(400, 20);
 			inputBox.TabIndex = 0;
 			inputBox.ForeColor = Color.White;
 			inputBox.Font = new Font(inputBox.Font, FontStyle.Bold);
@@ -30,13 +30,25 @@ namespace Wah_Core {
 			//outputBox
 			outputBox.ReadOnly = true;
 			outputBox.BackColor = Color.Black;
+			outputBox.BorderStyle = BorderStyle.None;
+			outputBox.Font = new Font(outputBox.Font.FontFamily, 12f, FontStyle.Regular); 
 			outputBox.ForeColor = Color.White;
+			outputBox.Location = new Point(5, 5);
 			outputBox.Size = new Size(400, 300);
+			outputBox.HideSelection = false;
+			// topPic
+			topPic.Size = new Size(160, 160);
+			topPic.Location = new Point(405, 5);
+			topPic.BackColor = Color.FromArgb(25, 25, 60);
+			// botPic
+			botPic.Size = new Size(160, 160);
+			botPic.Location = new Point(405, 165);
+			botPic.BackColor = Color.FromArgb(25, 25, 60);
 			// this
-			this.AutoScaleDimensions = new SizeF(6F, 13F);
-			this.AutoScaleMode = AutoScaleMode.Font;
-			this.BackColor = SystemColors.ControlDarkDark;
-			this.ClientSize = new Size(600, 300);
+			this.AutoScaleDimensions = new SizeF(600f, 400f);
+			this.AutoScaleMode = AutoScaleMode.None;
+			this.BackColor = Color.DarkSlateGray;
+			this.ClientSize = new Size(570, 330);
 			this.ControlBox = false;
 			this.FormBorderStyle = FormBorderStyle.None;
 			this.Name = "Wah!";
@@ -45,11 +57,13 @@ namespace Wah_Core {
 			//this.StartPosition = FormStartPosition.;
 			this.Text = "Wah!";
 			this.TopMost = true;
-			//this.Activated += MainForm_Activate;
-			//this.Deactivate += MainForm_Deactivate;
+			this.Activated += OnActivate;
+			this.Deactivate += OnDeactivate;
 
 			this.Controls.Add(this.inputBox);
 			this.Controls.Add(this.outputBox);
+			this.Controls.Add(this.topPic);
+			this.Controls.Add(this.botPic);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 			ResumeLayout();
@@ -67,6 +81,27 @@ namespace Wah_Core {
 			}
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
+		protected override void OnLoad(EventArgs e) {
+			base.OnLoad(e);
+			Location = new Point(Screen.PrimaryScreen.Bounds.Width - Bounds.Width, 0);
+		}
+		protected void OnActivate(object sender, EventArgs e) {
+			Console.WriteLine("Activated");
+			inputBox.Clear();
+		}
+		protected void OnDeactivate(object sender, EventArgs e) {
+			Console.WriteLine("Deactivated");
+			Hide();
+		}
+		protected override void WndProc(ref Message m) {
+			if (m.Msg == GlobalHotKeys.WM_HOTKEY && (short)m.WParam == GlobalHotKeys.HotkeyID) {
+				Show();
+				Activate();
+			}
+			else {
+				base.WndProc(ref m);
+			}
+		}
 		private void TextBox_KeyDown(object sender, PreviewKeyDownEventArgs e) {
 			if (e.Control && e.KeyCode == Keys.C) {
 				//kill currently running command
@@ -81,6 +116,10 @@ namespace Wah_Core {
 					outputBox.AppendText(txt + "\n");
 				}));
 			}
+			else {
+				outputBox.SelectionColor = col;
+				outputBox.AppendText(txt + "\n");
+			}
 		}
 
 		public void ShowPersona(Bitmap persona) {
@@ -91,5 +130,13 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
+		public void HideWindow() {
+			if (InvokeRequired) {
+				Invoke(new MethodInvoker(Hide));
+			}
+			else {
+				Hide();
+			}
+		}
 	}
 }

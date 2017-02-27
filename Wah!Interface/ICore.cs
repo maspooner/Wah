@@ -6,6 +6,7 @@ namespace Wah_Interface {
 	/// Represents the core Wah! unit, has all the Wah! interfaces and special methods
 	/// </summary>
 	public interface ICore {
+		//prohibit access
 		IApi Api { get; }
 		IDisplay Display { get; }
 		IAudio Audio { get; }
@@ -49,7 +50,7 @@ namespace Wah_Interface {
 		void ShowPersona(Bitmap persona);
 		void ShowTitle(string title);
 		void Print(string txt, Color col);
-
+		void HideWindow();
 	}
 	public interface IAudio {
 

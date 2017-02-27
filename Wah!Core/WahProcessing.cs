@@ -284,6 +284,7 @@ namespace Wah_Core {
 			cmds.Add("modlist", Cmd_Modlist);
 			cmds.Add("help", Cmd_Help);
 			cmds.Add("call", Cmd_Call);
+			cmds.Add("c", Cmd_Close);
 
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
@@ -349,6 +350,16 @@ namespace Wah_Core {
 
 			}
 			throw new NotImplementedException();
+		}
+
+		private IReturn Cmd_Close(ICore wah, string[] args) {
+			if(args.Length == 0) {
+				wah.Display.HideWindow();
+			}
+			else {
+				throw new IllformedInputException("No arguments onegai");
+			}
+			return new NoReturn();
 		}
 
 		//private IReturn Cmd_Config(ICore wah, string[] args) {

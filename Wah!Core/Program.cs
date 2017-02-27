@@ -9,13 +9,12 @@ using Wah_Interface;
 
 namespace Wah_Core {
 	internal class Program : ICore {
-
+		private const int TRIGGER_KEY = (int)Keys.C;
 		
 		private WahProcessing wpro;
 		private WahDisk wdisk;
 		private WahSettings wsets;
 		private WahWindow wwind;
-		
 
 		private Program() {
 			wdisk = new WahDisk();
@@ -31,22 +30,29 @@ namespace Wah_Core {
 
 		static void Main(string[] args) {
 			Program mainProgram = new Program();
-			mainProgram.Log("Application created");
-
-			mainProgram.Log("Beginning worker loop");
-			mainProgram.wpro.BeginListening();
-
-			mainProgram.Log("Beginning UI loop");
-			mainProgram.BeginUILoop();
-			//main window closed
-			mainProgram.Log("Application shutdown");
-			Application.Exit();
-			Environment.Exit(0);
+			mainProgram.PreRunOperations();
+			//Run the app, without showing the window
+			Application.Run();
+			mainProgram.PostRunOperations();
 		}
 
-		private void BeginUILoop() {
-			//Run the app
-			Application.Run(wwind);
+		private void PreRunOperations() {
+			Log("Application created");
+
+			Log("Beginning worker loop");
+			wpro.BeginListening();
+
+			GlobalHotKeys.RegisterGlobalHotKey(TRIGGER_KEY, GlobalHotKeys.MOD_WIN, wwind.Handle);
+			Log("Beginning UI loop");
+		}
+
+		private void PostRunOperations() {
+			//Post run
+			GlobalHotKeys.UnregisterGlobalHotKey(wwind.Handle);
+			//main window closed
+			Log("Application shutdown");
+			Application.Exit();
+			Environment.Exit(0);
 		}
 
 		public void Log(string line) {

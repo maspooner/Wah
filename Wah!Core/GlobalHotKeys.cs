@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Sayoka {
+namespace Wah_Core {
 	static class GlobalHotKeys {
 		//constants
 		internal const int MOD_ALT = 1;
