@@ -16,6 +16,7 @@ namespace Wah_Commands {
 			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
 			cmds.Add("namae", Cmd_Namae);
 			cmds.Add("hitode", Cmd_HitodeKangaeru);
+			cmds.Add("miru", Cmd_Miru);
 			return cmds;
 		}
 
@@ -33,6 +34,11 @@ namespace Wah_Commands {
 
 		private IReturn Cmd_HitodeKangaeru(ICore wah, string[] args) {
 			while (true);
+		}
+
+		private IReturn Cmd_Miru(ICore wah, string[] args) {
+			wah.Display.ShowPersona(Properties.Resources.fuko);
+			return new NoReturn();
 		}
 
 	}

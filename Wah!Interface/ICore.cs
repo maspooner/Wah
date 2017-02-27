@@ -47,8 +47,8 @@ namespace Wah_Interface {
 		string AwaitRead();
 	}
 	public interface IDisplay {
+		void ShowExtra(Bitmap extra);
 		void ShowPersona(Bitmap persona);
-		void ShowTitle(string title);
 		void Print(string txt, Color col);
 		void HideWindow();
 	}

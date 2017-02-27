@@ -31,7 +31,7 @@ namespace Wah_Core {
 			outputBox.ReadOnly = true;
 			outputBox.BackColor = Color.Black;
 			outputBox.BorderStyle = BorderStyle.None;
-			outputBox.Font = new Font(outputBox.Font.FontFamily, 12f, FontStyle.Regular); 
+			outputBox.Font = new Font(outputBox.Font.FontFamily, 12f, FontStyle.Regular);
 			outputBox.ForeColor = Color.White;
 			outputBox.Location = new Point(5, 5);
 			outputBox.Size = new Size(400, 300);
@@ -40,10 +40,12 @@ namespace Wah_Core {
 			topPic.Size = new Size(160, 160);
 			topPic.Location = new Point(405, 5);
 			topPic.BackColor = Color.FromArgb(25, 25, 60);
+			topPic.SizeMode = PictureBoxSizeMode.Zoom;
 			// botPic
 			botPic.Size = new Size(160, 160);
 			botPic.Location = new Point(405, 165);
 			botPic.BackColor = Color.FromArgb(25, 25, 60);
+			botPic.SizeMode = PictureBoxSizeMode.Zoom;
 			// this
 			this.AutoScaleDimensions = new SizeF(600f, 400f);
 			this.AutoScaleMode = AutoScaleMode.None;
@@ -110,32 +112,34 @@ namespace Wah_Core {
 		}
 
 		public void Print(string txt, Color col) {
-			if (outputBox.InvokeRequired) {
-				outputBox.Invoke(new MethodInvoker(delegate {
-					outputBox.SelectionColor = col;
-					outputBox.AppendText(txt + "\n");
-				}));
-			}
-			else {
+			CallOnUI(new Action(delegate {
 				outputBox.SelectionColor = col;
 				outputBox.AppendText(txt + "\n");
-			}
+			}));
 		}
 
 		public void ShowPersona(Bitmap persona) {
-			throw new NotImplementedException();
+			CallOnUI(new Action(delegate {
+				botPic.Image = persona;
+			}));
 		}
 
-		public void ShowTitle(string title) {
-			throw new NotImplementedException();
+		public void ShowExtra(Bitmap extra) {
+			CallOnUI(new Action(delegate {
+				topPic.Image = extra;
+			}));
 		}
 
 		public void HideWindow() {
+			CallOnUI(new Action(Hide));
+		}
+
+		private void CallOnUI(Action act) {
 			if (InvokeRequired) {
-				Invoke(new MethodInvoker(Hide));
+				Invoke(act);
 			}
 			else {
-				Hide();
+				act();
 			}
 		}
 	}
