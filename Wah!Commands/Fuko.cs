@@ -27,16 +27,16 @@ namespace Wah_Commands {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Namae(ICore wah, string[] args) {
+		private IReturn Cmd_Namae(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			wah.Put("FUKO MODULE DESU");
 			return new StringReturn("Fuko desu yo~!");
 		}
 
-		private IReturn Cmd_HitodeKangaeru(ICore wah, string[] args) {
+		private IReturn Cmd_HitodeKangaeru(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			while (true);
 		}
 
-		private IReturn Cmd_Miru(ICore wah, string[] args) {
+		private IReturn Cmd_Miru(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			wah.Display.ShowPersona(Properties.Resources.fuko);
 			return new NoReturn();
 		}

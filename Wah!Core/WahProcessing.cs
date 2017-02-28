@@ -40,10 +40,14 @@ namespace Wah_Core {
 			Assembly dll = wah.Disk.LoadAssembly(dllName);
 			Type moduleType = dll.GetTypes().First(t => t.Name.Equals(moduleName));
 			AModule newModule = (AModule)Activator.CreateInstance(moduleType);
-			if (modules.Any(m => m.Name.Equals(newModule.Name))) {
-				throw new ModuleLoadException(moduleName + " module is already loaded");
-			}
+			ValidateModule(newModule);
 			modules.Add(newModule);
+		}
+
+		public void ValidateModule(AModule mod) {
+			if (modules.Any(m => m.Name.Equals(mod.Name))) {
+				throw new ModuleLoadException(mod.Name + " module is already loaded");
+			}
 		}
 
 		public void LoadModuleLibrary(string dllName) {
@@ -65,6 +69,7 @@ namespace Wah_Core {
 
 		public void RunCommandLoop() {
 			while (!isDone) {
+				wah.Put("\n[custom-name]@[computer-name]  Wah!~", System.Drawing.Color.Purple);
 				lock (objLock) {
 					Monitor.Wait(objLock);
 				}
@@ -285,6 +290,7 @@ namespace Wah_Core {
 			cmds.Add("help", Cmd_Help);
 			cmds.Add("call", Cmd_Call);
 			cmds.Add("c", Cmd_Close);
+			cmds.Add("shutdown", Cmd_Shutdown);
 
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
@@ -297,11 +303,11 @@ namespace Wah_Core {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Wah(ICore wah, string[] args) {
+		private IReturn Cmd_Wah(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			return new StringReturn("Wah!");
 		}
 
-		private IReturn Cmd_WahHuh(ICore wah, string[] args) {
+		private IReturn Cmd_WahHuh(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			wah.Put("Wah?", System.Drawing.Color.Yellow);
 			string w = wah.Api.Call("wah!").AsString();
 			wah.Put(w);
@@ -309,56 +315,71 @@ namespace Wah_Core {
 			return new StringReturn(w);
 		}
 
-		private IReturn Cmd_Cmdlist(ICore wah, string[] args) {
-			if(args.Length == 0) {
-				foreach(string cmd in this.Commands.Select(pair => pair.Key)) {
-					wah.Put(cmd, System.Drawing.Color.Yellow);
-				}
+		private IReturn Cmd_Cmdlist(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			if(args.Count == 0) {
+				return Cmdlist_PrintModule(wah, this);
 			}
-			else if(args.Length == 1) {
-				string module = args[0];
-				foreach (string cmd in FindModule(module).Commands.Select(pair => pair.Key)) {
-					wah.Put(cmd, System.Drawing.Color.Yellow);
-				}
+			else if(args.Count == 1) {
+				return Cmdlist_PrintModule(wah, FindModule(args[0]));
 			}
 			else {
 				throw new IllformedInputException("Wrong number of arguments");
 			}
-			return new NoReturn();
+			
 		}
 
-		private IReturn Cmd_Modlist(ICore wah, string[] args) {
-			if (args.Length == 0) {
+		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
+			wah.Put("Showing commands for module " + mod.Name);
+			foreach (string cmd in mod.Commands.Select(pair => pair.Key)) {
+				wah.Put(cmd, System.Drawing.Color.Yellow);
+			}
+			return new ListReturn(mod.Commands.Select(pair => pair.Key).ToList());
+		}
+
+		private IReturn Cmd_Modlist(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			if (args.Count == 0) {
+				//call: modlist
 				foreach (AModule m in modules) {
 					wah.Put(m.Name, System.Drawing.Color.Yellow);
 				}
 			}
+			if(args.Count == 1) {
+				if (args[0].StartsWith("-")) {
+
+				}
+			}
 			else {
 				throw new IllformedInputException("Wrong number of arguments");
 			}
 			return new NoReturn();
 		}
 
-		private IReturn Cmd_Call(ICore wah, string[] args) {
+		private IReturn Cmd_Call(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			IReturn call = wah.Api.Call(string.Join(" ", args));
+			wah.Put("Call Results:", System.Drawing.Color.Cyan);
             wah.Put(call.AsString());
 			return call;
 		}
 
-		private IReturn Cmd_Help(ICore wah, string[] args) {
-			if(args.Length == 0) {
+		private IReturn Cmd_Help(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			if(args.Count == 0) {
 
 			}
 			throw new NotImplementedException();
 		}
 
-		private IReturn Cmd_Close(ICore wah, string[] args) {
-			if(args.Length == 0) {
+		private IReturn Cmd_Close(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			if(args.Count == 0) {
 				wah.Display.HideWindow();
 			}
 			else {
 				throw new IllformedInputException("No arguments onegai");
 			}
+			return new NoReturn();
+		}
+
+		private IReturn Cmd_Shutdown(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			Environment.Exit(0);
 			return new NoReturn();
 		}
 
@@ -378,24 +399,24 @@ namespace Wah_Core {
 		//	return new NoReturn();
 		//}
 
-		private IReturn Cmd_Chain1(ICore wah, string[] args) {
+		private IReturn Cmd_Chain1(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			int i = wah.Api.Call("chn2").AsInt();
 			wah.Put("i: " + i);
 			return new NoReturn();
 		}
 
-		private IReturn Cmd_Chain2(ICore wah, string[] args) {
+		private IReturn Cmd_Chain2(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			bool b = wah.Api.Call("chn3 true").AsBool();
 			return new IntReturn(b ? 5 : 6);
 		}
 
-		private IReturn Cmd_Chain3(ICore wah, string[] args) {
-			if(args.Length == 0) {
+		private IReturn Cmd_Chain3(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			if(args.Count == 0) {
 				return new NoReturn();
 			}
 			else {
 				throw new Exception("FATAL ERROR");
-				return new BoolReturn(true);
+				//return new BoolReturn(true);
 			}
 		}
 

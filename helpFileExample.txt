@@ -1,0 +1,8 @@
+###Fuko###
+@/miru/@
+Shows a %red%kawaii%red% fuko to the screen.
+Returns: NoReturn
+
+@/hitode/@
+Pauses to ponder the cuteness of starfish.
+Returns: Never

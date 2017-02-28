@@ -89,4 +89,23 @@ namespace Wah_Interface {
 		}
 	}
 
+	public class ListReturn : IReturn {
+		public IList<string> Value { get; private set; }
+		public ListReturn(IList<string> value) {
+			Value = value;
+		}
+
+		public string AsString() {
+			return string.Join("\n", Value);
+		}
+
+		public int AsInt() {
+			throw new IllformedInputException("data of ListReturn cannot be cast to an int");
+		}
+
+		public bool AsBool() {
+			throw new IllformedInputException("data of ListReturn cannot be cast to a bool");
+		}
+	}
+
 }

@@ -29,6 +29,7 @@ namespace Wah_Interface {
 		void LoadModule(string name);
 		void UnloadModule(string name);
 		AModule FindModule(string name);
+		void ValidateModule(AModule mod);
 		void BeginListening();
 		void RunCommandLoop();
 		void Prepare(string line);

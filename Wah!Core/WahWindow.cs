@@ -31,11 +31,12 @@ namespace Wah_Core {
 			outputBox.ReadOnly = true;
 			outputBox.BackColor = Color.Black;
 			outputBox.BorderStyle = BorderStyle.None;
-			outputBox.Font = new Font(outputBox.Font.FontFamily, 12f, FontStyle.Regular);
+			outputBox.Font = new Font(outputBox.Font.FontFamily, 11f, FontStyle.Regular);
 			outputBox.ForeColor = Color.White;
 			outputBox.Location = new Point(5, 5);
 			outputBox.Size = new Size(400, 300);
 			outputBox.HideSelection = false;
+			outputBox.TabStop = false;
 			// topPic
 			topPic.Size = new Size(160, 160);
 			topPic.Location = new Point(405, 5);
@@ -114,6 +115,7 @@ namespace Wah_Core {
 		public void Print(string txt, Color col) {
 			CallOnUI(new Action(delegate {
 				outputBox.SelectionColor = col;
+				//outputBox.SelectionFont = new Font(outputBox.Font, FontStyle.Bold);
 				outputBox.AppendText(txt + "\n");
 			}));
 		}
