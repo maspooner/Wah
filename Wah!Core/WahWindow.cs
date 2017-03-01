@@ -10,18 +10,20 @@ namespace Wah_Core {
 		private RichTextBox outputBox;
 		private PictureBox topPic;
 		private PictureBox botPic;
+		private Label inputLabel;
 		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
 			inputBox = new TextBox();
 			outputBox = new RichTextBox();
 			topPic = new PictureBox();
 			botPic = new PictureBox();
+			inputLabel = new Label();
 			SuspendLayout();
 			//inputBox 
 			inputBox.BackColor = Color.DarkSlateBlue;
 			inputBox.BorderStyle = BorderStyle.FixedSingle;
-			inputBox.Location = new Point(5, 305);
-			inputBox.Size = new Size(400, 20);
+			inputBox.Location = new Point(25, 305);
+			inputBox.Size = new Size(380, 20);
 			inputBox.TabIndex = 0;
 			inputBox.ForeColor = Color.White;
 			inputBox.Font = new Font(inputBox.Font, FontStyle.Bold);
@@ -47,6 +49,10 @@ namespace Wah_Core {
 			botPic.Location = new Point(405, 165);
 			botPic.BackColor = Color.FromArgb(25, 25, 60);
 			botPic.SizeMode = PictureBoxSizeMode.Zoom;
+			//inputLabel
+			inputLabel.Size = new Size(35, 20);
+			inputLabel.Location = new Point(10, 305);
+			inputLabel.Text = "> ";
 			// this
 			this.AutoScaleDimensions = new SizeF(600f, 400f);
 			this.AutoScaleMode = AutoScaleMode.None;
@@ -67,6 +73,7 @@ namespace Wah_Core {
 			this.Controls.Add(this.outputBox);
 			this.Controls.Add(this.topPic);
 			this.Controls.Add(this.botPic);
+			this.Controls.Add(this.inputLabel);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 			ResumeLayout();
@@ -137,12 +144,7 @@ namespace Wah_Core {
 		}
 
 		private void CallOnUI(Action act) {
-			if (InvokeRequired) {
-				Invoke(act);
-			}
-			else {
-				act();
-			}
+			Invoke(act);
 		}
 	}
 }
