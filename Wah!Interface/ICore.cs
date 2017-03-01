@@ -60,11 +60,13 @@ namespace Wah_Interface {
 
 	}
 	public interface IDisk {
+		bool AttemptFirstTimeSetup();
 		bool EnsureDir(string dirName);
 		void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
 		void RunShutdownOperations();
-		System.Reflection.Assembly LoadAssembly(string name);
+		void LoadDisplayHelp(ICore wah, string helpName);
+        System.Reflection.Assembly LoadAssembly(string name);
 	}
 	public interface ISettings {
 		//allow access

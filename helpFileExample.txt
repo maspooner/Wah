@@ -16,6 +16,10 @@ Wah!Cmds2.dll
 modata/
   SystemModule/
     .settings
+    data/
+      bin1
+      bin2
+      pic2
     hlp/
       Module help
       Cmd1 help

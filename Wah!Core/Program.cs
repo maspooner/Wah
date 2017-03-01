@@ -27,9 +27,9 @@ namespace Wah_Core {
 			//setup
 			wpro.InitializeModules();
 			//no mod-data
-			if (wdisk.EnsureDir("mod-data/")) {
+			if (wdisk.AttemptFirstTimeSetup()) {
 				//TODO
-				throw new NotImplementedException();
+				Putln("Welcome, first time user!");
 			}
 		}
 

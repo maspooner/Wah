@@ -9,9 +9,13 @@ using System.IO;
 
 namespace Wah_Core {
 	internal class WahDisk : IDisk {
-		private IProcessor wpro;
+		private const string MAGIC_COLOR = "$!";
+		private const string MAGIC_COLOR_START = ",";
+		private const string MAGIC_COLOR_END = ".";
+
+		private WahProcessing wpro;
 		private string basePath;
-		internal WahDisk(IProcessor wpro) {
+		internal WahDisk(WahProcessing wpro) {
 			this.wpro = wpro;
             basePath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath) + "/";
 		}
@@ -35,8 +39,39 @@ namespace Wah_Core {
 			}
 		}
 
-		public void LoadDisplayHelp(IDisplay wdisp, string helpName) {
+		public void LoadDisplayHelp(ICore wah, string helpName) {
+			string path = ModHelp(helpName);
+			if (File.Exists(path)) {
+				string[] lines = File.ReadAllLines(path);
+				foreach(string line in lines) {
+					if (line.Contains(MAGIC_COLOR)) {
+						int iMagic = line.IndexOf(MAGIC_COLOR);
+						string beforeMagic = line.Substring(0, iMagic);
+						if(beforeMagic.Length > 0) {
+							wah.Put(beforeMagic);
+						}
+						string afterMagic = line.Substring(iMagic);
+						if (afterMagic.Contains(MAGIC_COLOR_START) || afterMagic.Contains(MAGIC_COLOR_END)) {
+							//TODO
+						}
+						System.Drawing.Color.FromName();
+					}
+					else {
+						wah.Putln(line);
+					}
+				}
+			}
+			else {
+				wah.PutErr("No help document found.");
+			}
+		}
 
+		public bool AttemptFirstTimeSetup() {
+			if (EnsureDir("mod-data/" + wpro.Name)) {
+
+				return true;
+			}
+			return false;
 		}
 
 		//public byte[] LoadData(string fileName) {

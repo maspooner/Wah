@@ -69,7 +69,7 @@ namespace Wah_Core {
 
 		public void RunCommandLoop() {
 			while (!isDone) {
-				wah.Putln("\n[custom-name]@[computer-name]  Wah!~", System.Drawing.Color.Purple);
+				wah.Putln("\n[custom-name]@[computer-name]  Wah!~", System.Drawing.Color.Magenta);
 				lock (objLock) {
 					Monitor.Wait(objLock);
 				}
