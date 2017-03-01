@@ -137,12 +137,7 @@ namespace Wah_Core {
 		}
 
 		private void CallOnUI(Action act) {
-			if (InvokeRequired) {
-				Invoke(act);
-			}
-			else {
-				act();
-			}
+			Invoke(act);
 		}
 	}
 }
