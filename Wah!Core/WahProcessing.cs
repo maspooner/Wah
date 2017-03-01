@@ -148,7 +148,7 @@ namespace Wah_Core {
 		/// Executes the primed command
 		/// </summary>
 		public void Execute() {
-			wah.Putln("execute: " + primedCmd);
+			wah.Putln("> " + primedCmd);
 			try {
 				//the first part should be a module or system command
 				string firstString = ParseFirst(primedCmd);
