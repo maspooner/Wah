@@ -13,9 +13,12 @@ namespace Wah_Interface {
 		IDisk Disk { get; }
 		ISettings Settings { get; }
 		void Log(string line);
+		void Putln(string txt);
 		void Put(string txt);
-		void PutErr(string err);
+		void Putln(string txt, Color col);
 		void Put(string txt, Color col);
+		void PutErr(string err);
+		
 	}
 	/// <summary>
 	/// Represents the main Wah! command processor that handles the REPL and deligation of commands to modules
@@ -57,6 +60,7 @@ namespace Wah_Interface {
 
 	}
 	public interface IDisk {
+		bool EnsureDir(string dirName);
 		void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
 		void RunShutdownOperations();

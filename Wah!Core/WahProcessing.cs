@@ -69,7 +69,7 @@ namespace Wah_Core {
 
 		public void RunCommandLoop() {
 			while (!isDone) {
-				wah.Put("\n[custom-name]@[computer-name]  Wah!~", System.Drawing.Color.Purple);
+				wah.Putln("\n[custom-name]@[computer-name]  Wah!~", System.Drawing.Color.Purple);
 				lock (objLock) {
 					Monitor.Wait(objLock);
 				}
@@ -148,7 +148,7 @@ namespace Wah_Core {
 		/// Executes the primed command
 		/// </summary>
 		public void Execute() {
-			wah.Put("execute: " + primedCmd);
+			wah.Putln("execute: " + primedCmd);
 			try {
 				//the first part should be a module or system command
 				string firstString = ParseFirst(primedCmd);
@@ -308,9 +308,9 @@ namespace Wah_Core {
 		}
 
 		private IReturn Cmd_WahHuh(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			wah.Put("Wah?", System.Drawing.Color.Yellow);
+			wah.Putln("Wah?", System.Drawing.Color.Yellow);
 			string w = wah.Api.Call("wah!").AsString();
-			wah.Put(w);
+			wah.Putln(w);
 			wah.Api.Execute("wah!");
 			return new StringReturn(w);
 		}
@@ -329,9 +329,9 @@ namespace Wah_Core {
 		}
 
 		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
-			wah.Put("Showing commands for module " + mod.Name);
+			wah.Putln("Showing commands for module " + mod.Name);
 			foreach (string cmd in mod.Commands.Select(pair => pair.Key)) {
-				wah.Put(cmd, System.Drawing.Color.Yellow);
+				wah.Putln(cmd, System.Drawing.Color.Yellow);
 			}
 			return new ListReturn(mod.Commands.Select(pair => pair.Key).ToList());
 		}
@@ -340,7 +340,7 @@ namespace Wah_Core {
 			if (args.Count == 0) {
 				//call: modlist
 				foreach (AModule m in modules) {
-					wah.Put(m.Name, System.Drawing.Color.Yellow);
+					wah.Putln(m.Name, System.Drawing.Color.Yellow);
 				}
 			}
 			if(args.Count == 1) {
@@ -356,13 +356,20 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Call(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			IReturn call = wah.Api.Call(string.Join(" ", args));
-			wah.Put("Call Results:", System.Drawing.Color.Cyan);
-            wah.Put(call.AsString());
+			wah.Putln("Call Results:", System.Drawing.Color.Cyan);
+            wah.Putln(call.AsString());
 			return call;
 		}
 
 		private IReturn Cmd_Help(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			if(args.Count == 0) {
+
+			}
+			throw new NotImplementedException();
+		}
+
+		private IReturn Cmd_About(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			if (args.Count == 0) {
 
 			}
 			throw new NotImplementedException();
@@ -401,7 +408,7 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Chain1(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			int i = wah.Api.Call("chn2").AsInt();
-			wah.Put("i: " + i);
+			wah.Putln("i: " + i);
 			return new NoReturn();
 		}
 

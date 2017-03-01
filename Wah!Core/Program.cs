@@ -17,15 +17,20 @@ namespace Wah_Core {
 		private WahWindow wwind;
 
 		private Program() {
-			wdisk = new WahDisk();
 			//Get the processor warmed up with the core wah!
 			wpro = new WahProcessing(this);
-			
+			wdisk = new WahDisk(wpro);
 			wsets = new WahSettings(wpro, wdisk);
 			//Create the ui with access to the processor
 			wwind = new WahWindow(wpro);
 
+			//setup
 			wpro.InitializeModules();
+			//no mod-data
+			if (wdisk.EnsureDir("mod-data/")) {
+				//TODO
+				throw new NotImplementedException();
+			}
 		}
 
 		static void Main(string[] args) {
@@ -70,16 +75,22 @@ namespace Wah_Core {
 		public IDisk Disk { get { return wdisk; } }
 		public ISettings Settings { get { return wsets; } }
 
+		public void Putln(string txt) {
+			Putln(txt, System.Drawing.Color.White);
+		}
+		public void Putln(string txt, System.Drawing.Color col) {
+			Put(txt + "\n", col);
+		}
 		public void Put(string txt) {
-			Display.Print(txt, System.Drawing.Color.White);
+			Put(txt, System.Drawing.Color.White);
 		}
-
-		public void PutErr(string err) {
-			Display.Print(err, System.Drawing.Color.Red);
-		}
-
 		public void Put(string txt, System.Drawing.Color col) {
 			Display.Print(txt, col);
 		}
+		public void PutErr(string err) {
+			Putln(err, System.Drawing.Color.Red);
+		}
+
+		
 	}
 }

@@ -116,7 +116,7 @@ namespace Wah_Core {
 			CallOnUI(new Action(delegate {
 				outputBox.SelectionColor = col;
 				//outputBox.SelectionFont = new Font(outputBox.Font, FontStyle.Bold);
-				outputBox.AppendText(txt + "\n");
+				outputBox.AppendText(txt);
 			}));
 		}
 

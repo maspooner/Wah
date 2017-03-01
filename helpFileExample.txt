@@ -1,8 +1,65 @@
-###Fuko###
-@/miru/@
+Module help:
+
+
+Module help
+Each Command help
+Each Command help
+Each Command help
+Each Command help
+
+File structure:
+Wah!Core.exe
+Wah!Interface.dll
+Wah!Cmds1.dll
+Wah!Cmds2.dll
+...
+modata/
+  SystemModule/
+    .settings
+    hlp/
+      Module help
+      Cmd1 help
+      Cmd2 help
+  Module1/
+    .settings
+    data/
+     pic1
+     pic2
+     bin1
+     ...
+    hlp/
+     Module help
+     Cmd1 help
+     Cmd2 help
+     ...
+  Module2
+  ...
+  
+
+
+#_Fuko
+@/miru
+Usage: [koto]
+!$r, - start or continue color command
+!$r. - end color command
 Shows a %red%kawaii%red% fuko to the screen.
 Returns: NoReturn
-
+/@
 @/hitode/@
 Pauses to ponder the cuteness of starfish.
 Returns: Never
+
+
+
+help
+List summary
+
+
+help [module-name]
+List summary
+List all commands
+help fuko
+
+
+
+help [module-name] [command-name]
