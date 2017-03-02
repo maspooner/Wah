@@ -5,10 +5,12 @@ namespace Wah_Interface {
 	public abstract class AModule {
 		private static readonly char[] DELIMS = new char[] { ' ' };
 		public delegate IReturn CommandDelegate(ICore wah, List<string> args, Dictionary<string, string> flags);
-		public string Name { get; set; }
+		public string Name { get; private set; }
+		public string Version { get; private set; }
 		public Dictionary<string, CommandDelegate> Commands { get; private set; }
-		public AModule(string name) {
+		public AModule(string name, string version) {
 			Name = name;
+			Version = version;
 			Commands = InitializeCommands();
 		}
 		public abstract Dictionary<string, CommandDelegate> InitializeCommands();

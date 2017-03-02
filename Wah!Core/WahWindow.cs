@@ -33,7 +33,7 @@ namespace Wah_Core {
 			outputBox.ReadOnly = true;
 			outputBox.BackColor = Color.Black;
 			outputBox.BorderStyle = BorderStyle.None;
-			outputBox.Font = new Font(outputBox.Font.FontFamily, 11f, FontStyle.Regular);
+			outputBox.Font = new Font(outputBox.Font.FontFamily, 10f, FontStyle.Regular);
 			outputBox.ForeColor = Color.White;
 			outputBox.Location = new Point(5, 5);
 			outputBox.Size = new Size(400, 300);
@@ -144,7 +144,13 @@ namespace Wah_Core {
 		}
 
 		private void CallOnUI(Action act) {
-			Invoke(act);
+			//no window handle
+			if (!IsHandleCreated) {
+				//force the creation of the handle by calling its accessor
+				var handle = Handle;
+			}
+			//invoke the action
+			BeginInvoke(act);
 		}
 	}
 }

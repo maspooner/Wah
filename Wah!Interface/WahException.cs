@@ -58,6 +58,12 @@ namespace Wah_Interface {
 
 		}
 	}
+	public class HelpParseException : AWahException {
+		public HelpParseException(string message) : base(message) {
+
+		}
+	}
+
 
 	//Chain exceptions
 	public class CallFailedException : AWahException {

@@ -25,7 +25,6 @@ namespace Wah_Interface {
 	/// </summary>
 	public interface IProcessor {
 		//prohibit access
-		AModule ActiveModule { get; set; }
 		void InitializeModules();
 		void LoadModule(string dllName, string moduleName);
 		void LoadModuleLibrary(string dllName);
@@ -65,21 +64,21 @@ namespace Wah_Interface {
 		void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
 		void RunShutdownOperations();
-		void LoadDisplayHelp(ICore wah, string helpName);
+		void LoadDisplayHelp(ICore wah, AModule mod, string helpName);
         System.Reflection.Assembly LoadAssembly(string name);
 	}
 	public interface ISettings {
 		//allow access
 		void RegisterSetting(string name, string defValue, SettingType type);
 		
-		string GetString(string name);
-		int GetInt(string name);
-		bool GetBool(string name);
+		string GetString(AModule mod, string name);
+		int GetInt(AModule mod, string name);
+		bool GetBool(AModule mod, string name);
 		//prohibit access
 		void LoadSettings(string module);
 		void UnloadSettings(string module);
 		byte[] ToBytes();
-		void Set(string name, string content);
+		void Set(AModule mod, string name, string content);
 	}
 	public class Setting {
 		public string Name { get; set; }

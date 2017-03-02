@@ -8,7 +8,8 @@ using Wah_Interface;
 namespace Wah_Commands {
 	public class Fuko : AModule {
 		private const string FUKO_NO_NAMAE = "fuko";
-		public Fuko() : base(FUKO_NO_NAMAE) {
+		private const string FUKO_NO_HAN = "Hitode alpha 0";
+		public Fuko() : base(FUKO_NO_NAMAE, FUKO_NO_HAN) {
 
 		}
 

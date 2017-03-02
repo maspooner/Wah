@@ -16,15 +16,15 @@ namespace Wah_Core {
 			this.settings = new Dictionary<string, IList<Setting>>();
 		}
 
-		public bool GetBool(string name) {
+		public bool GetBool(AModule mod, string name) {
 			throw new NotImplementedException();
 		}
 
-		public int GetInt(string name) {
+		public int GetInt(AModule mod, string name) {
 			throw new NotImplementedException();
 		}
 
-		public string GetString(string name) {
+		public string GetString(AModule mod, string name) {
 			throw new NotImplementedException();
 		}
 
@@ -32,18 +32,18 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
-		public void Set(string name, string content) {
+		public void Set(AModule mod, string name, string content) {
 			Func<Setting, bool> matchesName = s => s.Name.Equals(name);
-			IList<Setting> sets = settings[wpro.ActiveModule.Name];
+			IList<Setting> sets = settings[mod.Name];
 			if (sets.Any(matchesName)) {
-				SafelyModifyContent(sets.First(matchesName), content);
+				SafelyModifyContent(mod, sets.First(matchesName), content);
 			}
 			else {
-				throw new NoSuchItemException("setting " + wpro.ActiveModule + "." + name + " does not exist, nya.");
+				throw new NoSuchItemException("setting " + mod.Name + "." + name + " does not exist, nya.");
 			}
 		}
 
-		private void SafelyModifyContent(Setting s, string newValue) {
+		private void SafelyModifyContent(AModule mod, Setting s, string newValue) {
 			bool aokay = false;
 			switch (s.Which) {
 				case SettingType.BOOL: bool temp = false; aokay = bool.TryParse(newValue, out temp); break;
@@ -55,7 +55,7 @@ namespace Wah_Core {
 				s.Content = newValue;
 			}
 			else {
-				throw new WrongDataTypeException("Attempted to set " + wpro.ActiveModule + "." + s.Name + "to a data type that does not match with " + s.Which.ToString());
+				throw new WrongDataTypeException("Attempted to set " + mod.Name + "." + s.Name + "to a data type that does not match with " + s.Which.ToString());
 			}
 		}
 

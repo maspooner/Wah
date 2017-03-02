@@ -5,26 +5,26 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Drawing;
 using Wah_Interface;
 
 namespace Wah_Core {
 	internal class WahProcessing : AModule, IProcessor, IApi {
 		private const string SYSTEM_MODULE_NAME = "SYSTEM";
+		private const string SYSTEM_MODULE_VERSION = "Alpha nya 0";
 		private ICore wah;
 		private bool isDone;
 		private object objLock;
 		private string primedCmd;
 		private Thread workerThread;
 		private IList<AModule> modules;
-		public AModule ActiveModule { get; set; }
 
-		public WahProcessing(ICore wah) : base(SYSTEM_MODULE_NAME) {
+		public WahProcessing(ICore wah) : base(SYSTEM_MODULE_NAME, SYSTEM_MODULE_VERSION) {
 			isDone = false;
 			objLock = new object();
 			primedCmd = "";
 			this.wah = wah;
 			workerThread = new Thread(RunCommandLoop);
-			ActiveModule = this;
 			modules = new List<AModule>();
 		}
 
@@ -69,7 +69,7 @@ namespace Wah_Core {
 
 		public void RunCommandLoop() {
 			while (!isDone) {
-				wah.Putln("\n[custom-name]@[computer-name]  Wah!~", System.Drawing.Color.Magenta);
+				wah.Putln("\n[custom-name]@[computer-name]  Wah!~", Color.Magenta);
 				lock (objLock) {
 					Monitor.Wait(objLock);
 				}
@@ -90,26 +90,17 @@ namespace Wah_Core {
 		/// </summary>
 		/// <returns>The return value of the call</returns>
 		private IReturn Call(AModule mod, string cmd, string args) {
-			//save the module before and switch the active module to the given module
-			AModule parentModule = ActiveModule;
-			ActiveModule = mod;
 			try {
 				//call the function in the context of the given module
 				IReturn callResult = mod.Call(wah, cmd, args);
-				//switch the module back to the parent module
-				ActiveModule = parentModule;
 				//return the call
 				return callResult;
 			}
 			catch (AWahException waex) {
-				//switch the module back to the parent module
-				ActiveModule = parentModule;
 				//throw back up the call chain
 				throw new CallFailedException("Error in call to module: " + mod.Name + " with call to " + MashCommand(cmd, args), waex);
 			}
 			catch (Exception ex) {
-				//switch the module back to the parent module
-				ActiveModule = parentModule;
 				//throw back up the call chain
 				throw new UnhandledException("Unhandled Exception thrown in: " + mod.Name
 					+ " with call to " + MashCommand(cmd, args) + " 大変です", ex);
@@ -120,25 +111,16 @@ namespace Wah_Core {
 		/// Executes the given command in the given module with the given arguments
 		/// </summary>
 		private void Execute(AModule mod, string cmd, string args) {
-			//save the module before and switch the active module to the given module
-			AModule parentModule = ActiveModule;
-			ActiveModule = mod;
 			try {
 				//execute the command in the module
 				mod.Execute(wah, cmd, args);
-				//switch the module back to the parent module
-				ActiveModule = parentModule;
 			}
 			catch (AWahException waex) {
-				//switch the module back to the parent module
-				ActiveModule = parentModule;
 				//throw back up the call chain
 				throw new CallFailedException("Error in executing module: " + mod.Name
 					+ " with call to " + MashCommand(cmd, args), waex);
 			}
 			catch (Exception ex) {
-				//switch the module back to the parent module
-				ActiveModule = parentModule;
 				//throw back up the call chain
 				throw new UnhandledException("Unhandled Exception thrown in: " + mod.Name
 					+ " with call to " + MashCommand(cmd, args) + " 大変です", ex);
@@ -182,7 +164,6 @@ namespace Wah_Core {
 				wah.PutErr("Wah! Error");
 				wah.PutErr(ex.StackTrace);
 			}
-			ActiveModule = this;
 		}
 
 		private string MashCommand(string cmd, string args) {
@@ -308,7 +289,7 @@ namespace Wah_Core {
 		}
 
 		private IReturn Cmd_WahHuh(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			wah.Putln("Wah?", System.Drawing.Color.Yellow);
+			wah.Putln("Wah?", Color.Yellow);
 			string w = wah.Api.Call("wah!").AsString();
 			wah.Putln(w);
 			wah.Api.Execute("wah!");
@@ -331,7 +312,7 @@ namespace Wah_Core {
 		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
 			wah.Putln("Showing commands for module " + mod.Name);
 			foreach (string cmd in mod.Commands.Select(pair => pair.Key)) {
-				wah.Putln(cmd, System.Drawing.Color.Yellow);
+				wah.Putln(cmd, Color.Yellow);
 			}
 			return new ListReturn(mod.Commands.Select(pair => pair.Key).ToList());
 		}
@@ -340,7 +321,7 @@ namespace Wah_Core {
 			if (args.Count == 0) {
 				//call: modlist
 				foreach (AModule m in modules) {
-					wah.Putln(m.Name, System.Drawing.Color.Yellow);
+					wah.Putln(m.Name, Color.Yellow);
 				}
 			}
 			if(args.Count == 1) {
@@ -356,16 +337,56 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Call(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			IReturn call = wah.Api.Call(string.Join(" ", args));
-			wah.Putln("Call Results:", System.Drawing.Color.Cyan);
+			wah.Putln("Call Results:", Color.Cyan);
             wah.Putln(call.AsString());
 			return call;
 		}
 
 		private IReturn Cmd_Help(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			if(args.Count == 0) {
-
+				Help_Module(this);
 			}
-			throw new NotImplementedException();
+			else if(args.Count == 1) {
+				if (ModuleLoaded(args[0])) {
+					Help_Module(FindModule(args[0]));
+				}
+				else if (Commands.ContainsKey(args[0])) {
+					Help_Command(this, args[0]);
+				}
+				else {
+					throw new NoSuchItemException("no module/system command named " + args[0]);
+                }
+			}
+			else if (args.Count == 2) {
+				if (ModuleLoaded(args[0])) {
+					AModule mod = FindModule(args[0]);
+					if (mod.Commands.ContainsKey(args[1])) {
+						Help_Command(mod, args[1]);
+					}
+					else {
+						throw new NoSuchItemException("no command named " + args[1]);
+					}
+				}
+				else {
+					throw new NoSuchItemException("no module named " + args[0]);
+				}
+			}
+			else {
+				throw new IllformedInputException("wrong number of arguments");
+			}
+			return new NoReturn();
+		}
+
+		private void Help_Module(AModule mod) {
+			wah.Putln("Module " + mod.Name, Color.GreenYellow);
+			wah.Putln("Version " + mod.Version);
+			wah.Putln("=============================");
+			wah.Disk.LoadDisplayHelp(wah, mod, mod.Name);
+		}
+
+		private void Help_Command(AModule mod, string cmd) {
+			wah.Putln("Command " + cmd + " in module " + mod.Name, Color.GreenYellow);
+			wah.Disk.LoadDisplayHelp(wah, mod, cmd);
 		}
 
 		private IReturn Cmd_About(ICore wah, List<string> args, Dictionary<string, string> flags) {

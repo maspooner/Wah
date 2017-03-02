@@ -23,7 +23,6 @@ namespace Wah_Core {
 			wsets = new WahSettings(wpro, wdisk);
 			//Create the ui with access to the processor
 			wwind = new WahWindow(wpro);
-
 			//setup
 			wpro.InitializeModules();
 			//no mod-data
