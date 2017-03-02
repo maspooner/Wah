@@ -344,12 +344,15 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Help(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			if(args.Count == 0) {
+				//call: help
 				Help_Module(this);
 			}
 			else if(args.Count == 1) {
+				//call: help fuko
 				if (ModuleLoaded(args[0])) {
 					Help_Module(FindModule(args[0]));
 				}
+				//call: help cmdlist
 				else if (Commands.ContainsKey(args[0])) {
 					Help_Command(this, args[0]);
 				}
@@ -358,6 +361,7 @@ namespace Wah_Core {
                 }
 			}
 			else if (args.Count == 2) {
+				//call: help fuko hitode
 				if (ModuleLoaded(args[0])) {
 					AModule mod = FindModule(args[0]);
 					if (mod.Commands.ContainsKey(args[1])) {
