@@ -34,11 +34,12 @@ namespace Wah_Commands {
 		}
 
 		private IReturn Cmd_HitodeKangaeru(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			wah.Display.ShowPersona(new ChangeAnimation(wah.Disk.LoadImageDir(this, "anime1", ".gif"), System.Drawing.Point.Empty, true));
 			while (true);
 		}
 
 		private IReturn Cmd_Miru(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			wah.Display.ShowPersona(new SimpleImage(Properties.Resources.fuko));
+			wah.Display.ShowPersona(new SimpleImage(wah.Disk.LoadImage(this, "fuko.png")));
 			return new NoReturn();
 		}
 

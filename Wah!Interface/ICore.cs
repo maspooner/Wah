@@ -76,6 +76,8 @@ namespace Wah_Interface {
 		bool EnsureDir(string dirName);
 		void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
+		Bitmap LoadImage(AModule mod, string fileName);
+		Bitmap[] LoadImageDir(AModule mod, string dirName, string ext);
 	}
 	public interface IReSettings {
 		//prohibit access

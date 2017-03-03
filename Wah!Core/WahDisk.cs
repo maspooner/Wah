@@ -6,19 +6,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Wah_Interface;
 using System.IO;
+using System.Drawing;
 
 namespace Wah_Core {
 	internal class WahDisk : IDisk, IReDisk {
 		private const string MAGIC_COLOR = "$!";
 		private const string MAGIC_COLOR_START = ",";
 		private const string MAGIC_COLOR_END = ".";
-		private static readonly System.Drawing.Color HELP_COLOR = System.Drawing.Color.LightGray;
+		private static readonly Color HELP_COLOR = Color.LightGray;
 
 		private WahProcessing wpro;
 		private string basePath;
 		internal WahDisk(WahProcessing wpro) {
 			this.wpro = wpro;
-            basePath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+			basePath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 		}
 
 		private string ModDir(string module) { return Path.Combine(basePath, Path.Combine("mod-data", module)); }
@@ -31,7 +32,7 @@ namespace Wah_Core {
 		/// </summary>
 		/// <returns>TRUE if had to create a new directory</returns>
 		public bool EnsureDir(string dirName) {
-			if(Directory.Exists(Path.Combine(basePath, dirName))) {
+			if (Directory.Exists(Path.Combine(basePath, dirName))) {
 				return false;
 			}
 			else {
@@ -50,7 +51,7 @@ namespace Wah_Core {
 			if (File.Exists(path)) {
 				string[] lines = File.ReadAllLines(path);
 				//for each line
-				foreach(string line in lines) {
+				foreach (string line in lines) {
 					//if the line contains a color command
 					if (line.Contains(MAGIC_COLOR)) {
 						//format the color of the line, starting with gray
@@ -96,13 +97,13 @@ namespace Wah_Core {
 						return afterMagic.Substring(MAGIC_COLOR_END.Length);
 					}
 					//start tag
-					else if(afterMagic.Contains(MAGIC_COLOR_START)) {
+					else if (afterMagic.Contains(MAGIC_COLOR_START)) {
 						//the index of the starting tag
 						int iStart = afterMagic.IndexOf(MAGIC_COLOR_START);
 						//read the name of the desired color
 						string colorName = afterMagic.Substring(0, iStart);
 						//illformated color tag
-						if(iStart + 1 >= afterMagic.Length) {
+						if (iStart + 1 >= afterMagic.Length) {
 							throw new HelpParseException("A color flag is impromperly formated.");
 						}
 						else {
@@ -119,7 +120,7 @@ namespace Wah_Core {
 				}
 			}
 			//print the rest if there is any
-			if(line.Length > 0) {
+			if (line.Length > 0) {
 				wah.Put(line, col);
 			}
 			//no more left to parse
@@ -142,9 +143,33 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
+		public Bitmap LoadImage(AModule mod, string fileName) {
+			string path = ModData(mod.Name, fileName);
+			if (File.Exists(path)) {
+				try {
+					return new Bitmap(path);
+				}
+				catch {
+					throw new BitmapLoadException("Could not load bitmap from module " + mod.Name + ": " + fileName);
+				}
+			}
+			else {
+				throw new BitmapLoadException("Could not load bitmap from module " + mod.Name + "\'s data folder the resource " + fileName);
+			}
+		}
+		public Bitmap[] LoadImageDir(AModule mod, string dirName, string ext) {
+			List<Bitmap> bits = new List<Bitmap>();
+			foreach (string file in Directory.EnumerateFiles(ModData(mod.Name, dirName))) {
+				if (file.EndsWith(ext)) {
+					bits.Add(LoadImage(mod, file));
+				}
+			}
+			return bits.ToArray();
+		}
+
 		public Assembly LoadAssembly(string name) {
-			Console.WriteLine(basePath + "/" + name + ".dll");
-			return Assembly.LoadFile(basePath + "/" + name + ".dll");
+			Console.WriteLine(Path.Combine(basePath, name + ".dll"));
+			return Assembly.LoadFile(Path.Combine(basePath, name + ".dll"));
 		}
 
 		public void RunShutdownOperations() {

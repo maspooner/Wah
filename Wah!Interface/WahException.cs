@@ -58,6 +58,11 @@ namespace Wah_Interface {
 
 		}
 	}
+	public class BitmapLoadException : AWahException {
+		public BitmapLoadException(string message) : base(message) {
+
+		}
+	}
 	public class HelpParseException : AWahException {
 		public HelpParseException(string message) : base(message) {
 

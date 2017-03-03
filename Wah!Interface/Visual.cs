@@ -11,34 +11,45 @@ namespace Wah_Interface {
 		Bitmap Image { get; }
 		void Tick();
 	}
-	public class EmptyImage : IVisual {
-		public Bitmap Image { get { return new Bitmap(1, 1); } }
+	public abstract class AStatic : IVisual {
 		public Point Location { get; private set; }
-		public EmptyImage(Point location) {
+		public abstract Bitmap Image { get; }
+		//public abstract Bitmap Image { get; }
+		internal AStatic(Point location) {
 			Location = location;
 		}
-		public void Tick() { }
+		public virtual void Tick() { }
 	}
-	public class SimpleImage : IVisual {
+	public abstract class AMove : IVisual {
 		public Point Location { get; private set; }
-		public Bitmap Image { get; private set; }
-		public SimpleImage(Bitmap image){
-			Image = image;
-			Location = new Point(0, 0);
+		public bool Repeat { get; private set; }
+		public abstract Bitmap Image { get; }
+		internal AMove(Point location, bool repeat) {
+			Location = location;
+			Repeat = repeat;
 		}
-		public void Tick() { }
+		public abstract void Tick();
 	}
-	public class LayeredImage : IVisual {
+	public class EmptyImage : AStatic {
+		public override Bitmap Image { get { return new Bitmap(1, 1); } }
+		public EmptyImage(Point location) : base(location) { }
+	}
+	public class SimpleImage : AStatic {
+		private Bitmap image;
+		public override Bitmap Image { get { return image; } }
+		public SimpleImage(Bitmap image) : base(new Point(0, 0)){
+			this.image = image;
+		}
+	}
+	public class LayeredImage : AStatic {
 		private IVisual[] images;
 		private Bitmap imBase;
-		public Point Location { get; private set; }
-		public Bitmap Image {
+		public override Bitmap Image {
 			get { return LayerImages(imBase, images); }
 		}
-        public LayeredImage(Bitmap imBase, params IVisual[] images) {
+        public LayeredImage(Bitmap imBase, params IVisual[] images) : base(new Point(0, 0)) {
 			this.imBase = imBase;
 			this.images = images;
-			Location = new Point(0, 0);
 		}
 		private Bitmap LayerImages(Bitmap imBase, params IVisual[] images) {
 			using(Graphics g = Graphics.FromImage(imBase)) {
@@ -48,32 +59,28 @@ namespace Wah_Interface {
 			}
 			return imBase;
 		}
-		public void Tick() {
+		public override void Tick() {
 			foreach(IVisual im in images) {
 				im.Tick();
 			}
 		}
 	}
-	public class ChangeAnimation : IVisual {
+	public class ChangeAnimation : AMove {
 		private Bitmap[] images;
 		private int i;
-		public bool Repeat { get; private set; }
-		public Point Location { get; private set; }
-		public Bitmap Image {
+		public override Bitmap Image {
 			get { return images[i]; }
 		}
 
-		public ChangeAnimation(Bitmap[] images, Point location, bool repeat) {
+		public ChangeAnimation(Bitmap[] images, Point location, bool repeat) : base(location, repeat) {
 			if(images.Length < 1) {
 				throw new ArgumentException("images must contain at least 1 image");
 			}
 			this.images = images;
-			Location = location;
-			Repeat = repeat;
 			i = 0;
 		}
 
-		public void Tick() {
+		public override void Tick() {
 			if (i + 1 < images.Length) {
 				i++;
 			}

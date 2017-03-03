@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Wah_Interface;
 
 namespace Wah_Core {
 	internal class WahWindow : Form, IDisplay {
+		private const int ANIMATION_CLOCK = 100;
 		private IProcessor wpro;
+		private CancellationTokenSource animeToken;
+		private Task animationTask;
+
 		private TextBox inputBox;
 		private RichTextBox outputBox;
 		private VisualBox topPic;
@@ -13,6 +19,8 @@ namespace Wah_Core {
 		private Label inputLabel;
 		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
+			animeToken = new CancellationTokenSource();
+			animationTask = new Task(new Action(AnimationLoop), animeToken.Token, TaskCreationOptions.LongRunning);
 			inputBox = new TextBox();
 			outputBox = new RichTextBox();
 			topPic = new VisualBox();
@@ -74,6 +82,19 @@ namespace Wah_Core {
 			this.ResumeLayout(false);
 			this.PerformLayout();
 			ResumeLayout();
+
+			//force create the handle
+			var h = Handle;
+			animationTask.Start();
+		}
+		private void AnimationLoop() {
+			for (;;) {
+				if (animeToken.Token.WaitHandle.WaitOne(ANIMATION_CLOCK)) {
+					break;
+				}
+				CallOnUI(topPic.Tick);
+				CallOnUI(botPic.Tick);
+			}
 		}
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
@@ -125,13 +146,13 @@ namespace Wah_Core {
 
 		public void ShowPersona(IVisual persona) {
 			CallOnUI(new Action(delegate {
-				botPic.Visual = persona;
+				botPic.UpdateVisual(persona);
 			}));
 		}
 
 		public void ShowExtra(IVisual extra) {
 			CallOnUI(new Action(delegate {
-				topPic.Visual = extra;
+				topPic.UpdateVisual(extra);
 			}));
 		}
 
@@ -143,33 +164,38 @@ namespace Wah_Core {
 		}
 
 		private void CallOnUI(Action act) {
-			//no window handle
-			if (!IsHandleCreated) {
-				//force the creation of the handle by calling its accessor
-				var handle = Handle;
-			}
+			////no window handle
+			//if (!IsHandleCreated) {
+			//	//force the creation of the handle by calling its accessor
+			//	var handle = Handle;
+			//}
 			//invoke the action
 			BeginInvoke(act);
 		}
 	}
 	internal class VisualBox : Panel {
-		private IVisual visual;
-		public IVisual Visual { get { return visual; }
-			set {
-				visual = value;
-				Refresh();
-			}
-		}
+		private volatile IVisual visual;
 		public VisualBox() : this(new EmptyImage(new Point(0, 0))) { }
 		public VisualBox(IVisual visual) {
-			Visual = visual;
+			this.visual = visual;
+			DoubleBuffered = true;
 		}
 
 		protected override void OnPaint(PaintEventArgs e) {
 			base.OnPaint(e);
 			e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
-			e.Graphics.DrawImage(Visual.Image, Visual.Location);
+			e.Graphics.DrawImage(visual.Image, visual.Location);
         }
+
+		public void UpdateVisual(IVisual vis) {
+			this.visual = vis;
+			Refresh();
+		}
+
+		public void Tick() {
+			this.visual.Tick();
+			Refresh();
+		}
 
 	}
 }

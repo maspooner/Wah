@@ -23,18 +23,12 @@ namespace Wah_Core {
 			wsets = new WahSettings(wpro, wdisk);
 			//Create the ui with access to the processor
 			wwind = new WahWindow(wpro);
-			//setup
-			wpro.InitializeModules();
-			//no mod-data
-			if (wdisk.AttemptFirstTimeSetup()) {
-				//TODO
-				Putln("Welcome, first time user!");
-			}
 		}
 
 		static void Main(string[] args) {
 			Program mainProgram = new Program();
 			mainProgram.PreRunOperations();
+			mainProgram.Log("Beginning UI loop");
 			//Run the app, without showing the window
 			Application.Run();
 			mainProgram.PostRunOperations();
@@ -47,7 +41,15 @@ namespace Wah_Core {
 			wpro.BeginListening();
 
 			GlobalHotKeys.RegisterGlobalHotKey(TRIGGER_KEY, GlobalHotKeys.MOD_WIN, wwind.Handle);
-			Log("Beginning UI loop");
+			
+
+			//setup
+			wpro.InitializeModules();
+			//no mod-data
+			if (wdisk.AttemptFirstTimeSetup()) {
+				//TODO
+				Putln("Welcome, first time user!");
+			}
 		}
 
 		private void PostRunOperations() {
