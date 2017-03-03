@@ -50,11 +50,12 @@ namespace Wah_Interface {
 		string AwaitRead();
 	}
 	public interface IDisplay {
-		void ShowExtra(Bitmap extra);
-		void ShowPersona(Bitmap persona);
+		void ShowExtra(IVisual extra);
+		void ShowPersona(IVisual persona);
 		void Print(string txt, Color col);
 		void HideWindow();
 	}
+
 	public interface IAudio {
 
 	}

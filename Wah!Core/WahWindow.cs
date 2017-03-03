@@ -8,15 +8,15 @@ namespace Wah_Core {
 		private IProcessor wpro;
 		private TextBox inputBox;
 		private RichTextBox outputBox;
-		private PictureBox topPic;
-		private PictureBox botPic;
+		private VisualBox topPic;
+		private VisualBox botPic;
 		private Label inputLabel;
 		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
 			inputBox = new TextBox();
 			outputBox = new RichTextBox();
-			topPic = new PictureBox();
-			botPic = new PictureBox();
+			topPic = new VisualBox();
+			botPic = new VisualBox();
 			inputLabel = new Label();
 			SuspendLayout();
 			//inputBox 
@@ -43,12 +43,10 @@ namespace Wah_Core {
 			topPic.Size = new Size(160, 160);
 			topPic.Location = new Point(405, 5);
 			topPic.BackColor = Color.FromArgb(25, 25, 60);
-			topPic.SizeMode = PictureBoxSizeMode.Zoom;
 			// botPic
 			botPic.Size = new Size(160, 160);
 			botPic.Location = new Point(405, 165);
 			botPic.BackColor = Color.FromArgb(25, 25, 60);
-			botPic.SizeMode = PictureBoxSizeMode.Zoom;
 			//inputLabel
 			inputLabel.Size = new Size(35, 20);
 			inputLabel.Location = new Point(10, 305);
@@ -63,7 +61,6 @@ namespace Wah_Core {
 			this.Name = "Wah!";
 			this.ShowIcon = false;
 			this.ShowInTaskbar = false;
-			//this.StartPosition = FormStartPosition.;
 			this.Text = "Wah!";
 			this.TopMost = true;
 			this.Activated += OnActivate;
@@ -81,7 +78,6 @@ namespace Wah_Core {
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
 			if (keyData == Keys.Enter) {
-				Console.WriteLine("Enter");
 				//wpro.Prepare("wah? fuko.partyhat true");
 				//wpro.Prepare("fuko get gmail");
 				string input = inputBox.Text;
@@ -127,15 +123,15 @@ namespace Wah_Core {
 			}));
 		}
 
-		public void ShowPersona(Bitmap persona) {
+		public void ShowPersona(IVisual persona) {
 			CallOnUI(new Action(delegate {
-				botPic.Image = persona;
+				botPic.Visual = persona;
 			}));
 		}
 
-		public void ShowExtra(Bitmap extra) {
+		public void ShowExtra(IVisual extra) {
 			CallOnUI(new Action(delegate {
-				topPic.Image = extra;
+				topPic.Visual = extra;
 			}));
 		}
 
@@ -152,5 +148,25 @@ namespace Wah_Core {
 			//invoke the action
 			BeginInvoke(act);
 		}
+	}
+	internal class VisualBox : Panel {
+		private IVisual visual;
+		public IVisual Visual { get { return visual; }
+			set {
+				visual = value;
+				Refresh();
+			}
+		}
+		public VisualBox() : this(new EmptyImage(new Point(0, 0))) { }
+		public VisualBox(IVisual visual) {
+			Visual = visual;
+		}
+
+		protected override void OnPaint(PaintEventArgs e) {
+			base.OnPaint(e);
+			e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+			e.Graphics.DrawImage(Visual.Image, Visual.Location);
+        }
+
 	}
 }

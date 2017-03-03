@@ -31,11 +31,11 @@ namespace Wah_Core {
 		/// </summary>
 		/// <returns>TRUE if had to create a new directory</returns>
 		public bool EnsureDir(string dirName) {
-			if(Directory.Exists(basePath + dirName)) {
+			if(Directory.Exists(Path.Combine(basePath, dirName))) {
 				return false;
 			}
 			else {
-				Directory.CreateDirectory(basePath + dirName);
+				Directory.CreateDirectory(Path.Combine(basePath, dirName));
 				return true;
 			}
 		}

@@ -38,7 +38,7 @@ namespace Wah_Commands {
 		}
 
 		private IReturn Cmd_Miru(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			wah.Display.ShowPersona(Properties.Resources.fuko);
+			wah.Display.ShowPersona(new SimpleImage(Properties.Resources.fuko));
 			return new NoReturn();
 		}
 
