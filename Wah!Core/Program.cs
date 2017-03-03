@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using Wah_Interface;
 
 namespace Wah_Core {
-	internal class Program : ICore {
+	internal class Program : ICore, IReCore {
 		private const int TRIGGER_KEY = (int)Keys.C;
 		
 		private WahProcessing wpro;
@@ -70,9 +70,15 @@ namespace Wah_Core {
 				throw new NotImplementedException();
 			}
 		}
+		//allowed
 		public IDisplay Display { get { return wwind; } }
 		public IDisk Disk { get { return wdisk; } }
 		public ISettings Settings { get { return wsets; } }
+
+		//restricted
+		public IProcessor Processor { get { return wpro; } }
+		public IReDisk ReDisk { get { return wdisk; } }
+		public IReSettings ReSettings { get { return wsets; } }
 
 		public void Putln(string txt) {
 			Putln(txt, System.Drawing.Color.White);

@@ -8,7 +8,7 @@ using Wah_Interface;
 using System.IO;
 
 namespace Wah_Core {
-	internal class WahDisk : IDisk {
+	internal class WahDisk : IDisk, IReDisk {
 		private const string MAGIC_COLOR = "$!";
 		private const string MAGIC_COLOR_START = ",";
 		private const string MAGIC_COLOR_END = ".";

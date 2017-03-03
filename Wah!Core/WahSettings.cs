@@ -5,7 +5,7 @@ using System.Linq;
 using Wah_Interface;
 
 namespace Wah_Core {
-	internal class WahSettings : ISettings {
+	internal class WahSettings : ISettings, IReSettings {
 		private IProcessor wpro;
 		private IDisk wdisk;
 		private Dictionary<string, IList<Setting>> settings;

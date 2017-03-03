@@ -138,6 +138,9 @@ namespace Wah_Core {
 		public void HideWindow() {
 			CallOnUI(new Action(Hide));
 		}
+		public void ClearWindow() {
+			CallOnUI(new Action(outputBox.Clear));
+		}
 
 		private void CallOnUI(Action act) {
 			//no window handle

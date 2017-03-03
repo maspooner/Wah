@@ -12,14 +12,14 @@ namespace Wah_Core {
 	internal class WahProcessing : AModule, IProcessor, IApi {
 		private const string SYSTEM_MODULE_NAME = "SYSTEM";
 		private const string SYSTEM_MODULE_VERSION = "Alpha nya 0";
-		private ICore wah;
+		private Program wah;
 		private bool isDone;
 		private object objLock;
 		private string primedCmd;
 		private Thread workerThread;
 		private IList<AModule> modules;
 
-		public WahProcessing(ICore wah) : base(SYSTEM_MODULE_NAME, SYSTEM_MODULE_VERSION) {
+		public WahProcessing(Program wah) : base(SYSTEM_MODULE_NAME, SYSTEM_MODULE_VERSION) {
 			isDone = false;
 			objLock = new object();
 			primedCmd = "";
@@ -37,7 +37,7 @@ namespace Wah_Core {
 		}
 
 		public void LoadModule(string dllName, string moduleName) {
-			Assembly dll = wah.Disk.LoadAssembly(dllName);
+			Assembly dll = wah.ReDisk.LoadAssembly(dllName);
 			Type moduleType = dll.GetTypes().First(t => t.Name.Equals(moduleName));
 			AModule newModule = (AModule)Activator.CreateInstance(moduleType);
 			ValidateModule(newModule);
@@ -69,13 +69,17 @@ namespace Wah_Core {
 
 		public void RunCommandLoop() {
 			while (!isDone) {
-				wah.Putln("\n[custom-name]@[computer-name]  Wah!~", Color.Magenta);
+				wah.Put("[custom-name]", Color.Yellow);
+				wah.Put("@", Color.YellowGreen);
+				wah.Put("[computer-name] ", Color.Cyan);
+				wah.Putln(" Wah!~", Color.Magenta);
 				lock (objLock) {
 					Monitor.Wait(objLock);
 				}
 				if (!isDone) {
 					Execute();
 				}
+				wah.Putln("");
 			}
 		}
 
@@ -272,6 +276,7 @@ namespace Wah_Core {
 			cmds.Add("call", Cmd_Call);
 			cmds.Add("c", Cmd_Close);
 			cmds.Add("shutdown", Cmd_Shutdown);
+			cmds.Add("clr", Cmd_Clear);
 
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
@@ -324,7 +329,7 @@ namespace Wah_Core {
 					wah.Putln(m.Name, Color.Yellow);
 				}
 			}
-			if(args.Count == 1) {
+			else if(args.Count == 1) {
 				if (args[0].StartsWith("-")) {
 
 				}
@@ -385,12 +390,12 @@ namespace Wah_Core {
 			wah.Putln("Module " + mod.Name, Color.GreenYellow);
 			wah.Putln("Version " + mod.Version);
 			wah.Putln("=============================");
-			wah.Disk.LoadDisplayHelp(wah, mod, mod.Name);
+			wah.ReDisk.LoadDisplayHelp(wah, mod, mod.Name);
 		}
 
 		private void Help_Command(AModule mod, string cmd) {
 			wah.Putln("Command " + cmd + " in module " + mod.Name, Color.GreenYellow);
-			wah.Disk.LoadDisplayHelp(wah, mod, cmd);
+			wah.ReDisk.LoadDisplayHelp(wah, mod, cmd);
 		}
 
 		private IReturn Cmd_About(ICore wah, List<string> args, Dictionary<string, string> flags) {
@@ -412,6 +417,11 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Shutdown(ICore wah, List<string> args, Dictionary<string, string> flags) {
 			Environment.Exit(0);
+			return new NoReturn();
+		}
+
+		private IReturn Cmd_Clear(ICore wah, List<string> args, Dictionary<string, string> flags) {
+			wah.Display.ClearWindow();
 			return new NoReturn();
 		}
 

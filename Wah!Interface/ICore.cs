@@ -6,7 +6,7 @@ namespace Wah_Interface {
 	/// Represents the core Wah! unit, has all the Wah! interfaces and special methods
 	/// </summary>
 	public interface ICore {
-		//prohibit access
+		//allow access
 		IApi Api { get; }
 		IDisplay Display { get; }
 		IAudio Audio { get; }
@@ -18,7 +18,11 @@ namespace Wah_Interface {
 		void Putln(string txt, Color col);
 		void Put(string txt, Color col);
 		void PutErr(string err);
-		
+	}
+	public interface IReCore {
+		IProcessor Processor { get; }
+		IReDisk ReDisk { get; }
+		IReSettings ReSettings { get; }
 	}
 	/// <summary>
 	/// Represents the main Wah! command processor that handles the REPL and deligation of commands to modules
@@ -54,19 +58,31 @@ namespace Wah_Interface {
 		void ShowPersona(IVisual persona);
 		void Print(string txt, Color col);
 		void HideWindow();
+		void ClearWindow();
 	}
 
 	public interface IAudio {
 
 	}
-	public interface IDisk {
+	public interface IReDisk {
+		//prohibit access
 		bool AttemptFirstTimeSetup();
+		void RunShutdownOperations();
+		void LoadDisplayHelp(ICore wah, AModule mod, string helpName);
+		System.Reflection.Assembly LoadAssembly(string name);
+	}
+	public interface IDisk {
+		//allow access
 		bool EnsureDir(string dirName);
 		void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
-		void RunShutdownOperations();
-		void LoadDisplayHelp(ICore wah, AModule mod, string helpName);
-        System.Reflection.Assembly LoadAssembly(string name);
+	}
+	public interface IReSettings {
+		//prohibit access
+		void LoadSettings(string module);
+		void UnloadSettings(string module);
+		byte[] ToBytes();
+		void Set(AModule mod, string name, string content);
 	}
 	public interface ISettings {
 		//allow access
@@ -75,11 +91,7 @@ namespace Wah_Interface {
 		string GetString(AModule mod, string name);
 		int GetInt(AModule mod, string name);
 		bool GetBool(AModule mod, string name);
-		//prohibit access
-		void LoadSettings(string module);
-		void UnloadSettings(string module);
-		byte[] ToBytes();
-		void Set(AModule mod, string name, string content);
+		
 	}
 	public class Setting {
 		public string Name { get; set; }
