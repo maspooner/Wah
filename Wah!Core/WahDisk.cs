@@ -21,11 +21,16 @@ namespace Wah_Core {
 			this.wpro = wpro;
 			basePath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 		}
-
-		private string ModDir(string module) { return Path.Combine(basePath, Path.Combine("mod-data", module)); }
-		private string ModData(string module, string fileName) { return Path.Combine(ModDir(module), Path.Combine("data", fileName)); }
-		private string ModHelp(string module, string fileName) { return Path.Combine(ModDir(module), Path.Combine("help", fileName)); }
-		private string ModSettings(string module) { return Path.Combine(ModDir(module), "settings.bin"); }
+		//relative
+		private string ModuleDir(AModule mod) { return Path.Combine("mod-data", mod.Name); }
+		public string DataDir(AModule mod) { return Path.Combine(ModuleDir(mod), "data"); }
+		public string HelpDir(AModule mod) { return Path.Combine(ModuleDir(mod), "help"); }
+		public string SettingsFile(AModule mod) { return Path.Combine(ModuleDir(mod), "settings.txt"); }
+		//absolute
+		private string FullModuleDir(AModule mod) { return Path.Combine(basePath, ModuleDir(mod)); }
+		private string FullDataDir(AModule mod) { return Path.Combine(basePath, DataDir(mod)); }
+		private string FullHelpDir(AModule mod) { return Path.Combine(basePath, HelpDir(mod)); }
+		private string FullSettingsFile(AModule mod) { return Path.Combine(basePath, SettingsFile(mod)); }
 
 		/// <summary>
 		/// Ensures a directory path exists, by creating it if it doesn't exist
@@ -40,6 +45,15 @@ namespace Wah_Core {
 				return true;
 			}
 		}
+		public bool EnsureFile(string fileName) {
+			if(File.Exists(Path.Combine(basePath, fileName))) {
+				return false;
+			}
+			else {
+				File.Create(Path.Combine(basePath, fileName));
+				return true;
+			}
+		}
 
 		/// <summary>
 		/// Attempts to load the specified help file located in the current module.
@@ -47,7 +61,7 @@ namespace Wah_Core {
 		/// </summary>
 		public void LoadDisplayHelp(ICore wah, AModule mod, string helpName) {
 			//get the full path to the help file
-			string path = ModHelp(mod.Name, helpName + ".txt");
+			string path = Path.Combine(FullHelpDir(mod), helpName + ".txt");
 			if (File.Exists(path)) {
 				string[] lines = File.ReadAllLines(path);
 				//for each line
@@ -128,7 +142,7 @@ namespace Wah_Core {
 		}
 
 		public bool AttemptFirstTimeSetup() {
-			if (EnsureDir("mod-data/" + wpro.Name)) {
+			if (EnsureDir(ModuleDir(wpro))) {
 
 				return true;
 			}
@@ -143,23 +157,32 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
+		public string[] LoadSettings(AModule mod, string fileName) {
+			try {
+				return File.ReadAllLines(FullSettingsFile(mod));
+			}
+			catch {
+				throw new IOLoadException("Could not read the lines of resource " + fileName + " in module " + mod.Name);
+			}
+		}
+
 		public Bitmap LoadImage(AModule mod, string fileName) {
-			string path = ModData(mod.Name, fileName);
+			string path = Path.Combine(FullDataDir(mod), fileName);
 			if (File.Exists(path)) {
 				try {
 					return new Bitmap(path);
 				}
 				catch {
-					throw new BitmapLoadException("Could not load bitmap from module " + mod.Name + ": " + fileName);
+					throw new IOLoadException("Could not load bitmap from module " + mod.Name + ": " + fileName);
 				}
 			}
 			else {
-				throw new BitmapLoadException("Could not load bitmap from module " + mod.Name + "\'s data folder the resource " + fileName);
+				throw new IOLoadException("Could not load bitmap from module " + mod.Name + "\'s data folder the resource " + fileName);
 			}
 		}
 		public Bitmap[] LoadImageDir(AModule mod, string dirName, string ext) {
 			List<Bitmap> bits = new List<Bitmap>();
-			foreach (string file in Directory.EnumerateFiles(ModData(mod.Name, dirName))) {
+			foreach (string file in Directory.EnumerateFiles(Path.Combine(FullDataDir(mod), dirName))) {
 				if (file.EndsWith(ext)) {
 					bits.Add(LoadImage(mod, file));
 				}

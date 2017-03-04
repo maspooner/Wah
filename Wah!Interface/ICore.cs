@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Wah_Interface {
 	/// <summary>
-	/// Represents the core Wah! unit, has all the Wah! interfaces and special methods
+	/// Represents the core Wah! unit, has all the non-restricted Wah! interfaces and special methods
 	/// </summary>
 	public interface ICore {
 		//allow access
@@ -19,6 +19,9 @@ namespace Wah_Interface {
 		void Put(string txt, Color col);
 		void PutErr(string err);
 	}
+	/// <summary>
+	/// Represents the restricted core Wah! unit, with access to restricted Wah! interfaces
+	/// </summary>
 	public interface IReCore {
 		IProcessor Processor { get; }
 		IReDisk ReDisk { get; }
@@ -41,7 +44,7 @@ namespace Wah_Interface {
 		void Prepare(string line);
 		void InterruptJob();
 		void Execute();
-		
+
 	}
 	/// <summary>
 	/// Represents an interface with the command processor that gives modules access to its features
@@ -73,33 +76,64 @@ namespace Wah_Interface {
 	}
 	public interface IDisk {
 		//allow access
+		string DataDir(AModule mod);
+		string HelpDir(AModule mod);
+		string SettingsFile(AModule mod);
 		bool EnsureDir(string dirName);
-		void Save(string fileName, byte[] data);
+	    bool EnsureFile(string fileName);
+        void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
 		Bitmap LoadImage(AModule mod, string fileName);
 		Bitmap[] LoadImageDir(AModule mod, string dirName, string ext);
+		string[] LoadSettings(AModule mod, string fileName);
 	}
 	public interface IReSettings {
 		//prohibit access
-		void LoadSettings(string module);
-		void UnloadSettings(string module);
+		void LoadSettings(IDisk wdisk, AModule mod);
+		void UnloadSettings(AModule mod);
 		byte[] ToBytes();
 		void Set(AModule mod, string name, string content);
 	}
 	public interface ISettings {
 		//allow access
-		void RegisterSetting(string name, string defValue, SettingType type);
-		
+		void RegisterSetting(AModule mod, string name, string defValue, SettingType type);
+
 		string GetString(AModule mod, string name);
 		int GetInt(AModule mod, string name);
 		bool GetBool(AModule mod, string name);
-		
+
 	}
 	public class Setting {
-		public string Name { get; set; }
-		public string Content { get; set; }
+		public SettingPair Pair { get; set; }
 		public string Default { get; set; }
 		public SettingType Which { get; set; }
+		public Setting(SettingPair pair, string def, SettingType which) {
+			Pair = pair;
+			Default = def;
+			Which = which;
+		}
+	}
+	public class SettingPair {
+		private const char ENCODING_CHAR = ':';
+		public string Name { get; set; }
+		public string Content { get; set; }
+		public SettingPair(string enline) {
+			string[] pieces = enline.Split(ENCODING_CHAR);
+			if (pieces.Length != 2) {
+				throw new IllformedInputException("Setting pair must have 2 parts");
+			}
+			Name = DecodeB64(pieces[0]);
+			Content = DecodeB64(pieces[1]);
+		}
+		public string Encode() {
+			return EncodeB64(Name) + ENCODING_CHAR + EncodeB64(Content);
+		}
+		private string EncodeB64(string s) {
+			return Convert.ToBase64String(System.Text.Encoding.UTF32.GetBytes(s));
+		}
+		private string DecodeB64(string s) {
+			return System.Text.Encoding.UTF32.GetString(Convert.FromBase64String(s));
+		}
 	}
 
 	public enum SettingType { STRING, INT, BOOL }

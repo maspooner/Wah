@@ -22,7 +22,8 @@ namespace Wah_Commands {
 		}
 
 		public override void InitializeSettings(ISettings sets) {
-			throw new NotImplementedException();
+			sets.RegisterSetting(this, "login.timeout", "120", SettingType.INT);
+
 		}
 
 		/************************************************
@@ -34,7 +35,7 @@ namespace Wah_Commands {
 		}
 
 		private IReturn Cmd_HitodeKangaeru(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			wah.Display.ShowPersona(new ChangeAnimation(wah.Disk.LoadImageDir(this, "anime1", ".gif"), System.Drawing.Point.Empty, true));
+			wah.Display.ShowPersona(new BouncingChangeAnimation(wah.Disk.LoadImageDir(this, "anime1", ".gif"), System.Drawing.Point.Empty));
 			while (true);
 		}
 

@@ -28,12 +28,12 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
-		public void RegisterSetting(string name, string defValue, SettingType type) {
-			throw new NotImplementedException();
+		public void RegisterSetting(AModule mod, string name, string defValue, SettingType type) {
+			
 		}
 
 		public void Set(AModule mod, string name, string content) {
-			Func<Setting, bool> matchesName = s => s.Name.Equals(name);
+			Func<Setting, bool> matchesName = s => s.Pair.Name.Equals(name);
 			IList<Setting> sets = settings[mod.Name];
 			if (sets.Any(matchesName)) {
 				SafelyModifyContent(mod, sets.First(matchesName), content);
@@ -52,10 +52,10 @@ namespace Wah_Core {
 				default: throw new NotImplementedException("SafelyModifyContent");
 			}
 			if (aokay) {
-				s.Content = newValue;
+				s.Pair.Content = newValue;
 			}
 			else {
-				throw new WrongDataTypeException("Attempted to set " + mod.Name + "." + s.Name + "to a data type that does not match with " + s.Which.ToString());
+				throw new WrongDataTypeException("Attempted to set " + mod.Name + "." + s.Pair.Name + "to a data type that does not match with " + s.Which.ToString());
 			}
 		}
 
@@ -63,11 +63,23 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
-		public void LoadSettings(string module) {
-			throw new NotImplementedException();
+		public void LoadSettings(IDisk disk, AModule mod) {
+			if (settings.ContainsKey(mod.Name)) {
+				throw new InvalidStateException("Settings for module " + mod.Name + " are already loaded");
+			}
+			//create the settings file if not there
+			disk.EnsureFile(disk.SettingsFile(mod));
+			string[] lines = disk.LoadSettings(mod, "settings.txt");
+			IEnumerable<SettingPair> pairs = lines.Select(l => new SettingPair(l));
+			//initialize settings of module
+			mod.InitializeSettings(this);
+			//set all the ones from file
+			foreach(SettingPair pair in pairs) {
+				Set(mod, pair.Name, pair.Content);
+			}
 		}
 
-		public void UnloadSettings(string module) {
+		public void UnloadSettings(AModule mod) {
 			throw new NotImplementedException();
 		}
 	}

@@ -89,4 +89,33 @@ namespace Wah_Interface {
 			}
 		}
 	}
+	public class BouncingChangeAnimation : AMove {
+		private Bitmap[] images;
+		private int i;
+		private bool down;
+		public override Bitmap Image {
+			get { return images[i]; }
+		}
+
+		public BouncingChangeAnimation(Bitmap[] images, Point location) : base(location, true) {
+			if (images.Length < 1) {
+				throw new ArgumentException("images must contain at least 1 image");
+			}
+			this.images = images;
+			i = 0;
+			down = false;
+		}
+
+		public override void Tick() {
+			if (down && i - 1 >= 0) {
+				i--;
+			}
+			else if(!down && i + 1 < images.Length) {
+				i++;
+			}
+			else {
+				down = !down;
+			}
+		}
+	}
 }

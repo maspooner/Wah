@@ -53,18 +53,18 @@ namespace Wah_Interface {
 
 		}
 	}
-	public class ModuleLoadException : AWahException {
-		public ModuleLoadException(string message) : base(message) {
-
-		}
-	}
-	public class BitmapLoadException : AWahException {
-		public BitmapLoadException(string message) : base(message) {
+	public class IOLoadException : AWahException {
+		public IOLoadException(string message) : base(message) {
 
 		}
 	}
 	public class HelpParseException : AWahException {
 		public HelpParseException(string message) : base(message) {
+
+		}
+	}
+	public class InvalidStateException : AWahException {
+		public InvalidStateException(string message) : base(message) {
 
 		}
 	}

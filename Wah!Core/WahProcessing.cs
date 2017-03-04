@@ -42,11 +42,12 @@ namespace Wah_Core {
 			AModule newModule = (AModule)Activator.CreateInstance(moduleType);
 			ValidateModule(newModule);
 			modules.Add(newModule);
+			wah.ReSettings.LoadSettings(wah.Disk, newModule);
 		}
 
 		public void ValidateModule(AModule mod) {
 			if (modules.Any(m => m.Name.Equals(mod.Name))) {
-				throw new ModuleLoadException(mod.Name + " module is already loaded");
+				throw new IOLoadException(mod.Name + " module is already loaded");
 			}
 		}
 
@@ -56,10 +57,12 @@ namespace Wah_Core {
 
 		public void UnloadModule(string name) {
 			if (modules.Any(m => m.Name.Equals(name))) {
-				modules.Where(m => !m.Name.Equals(name));
+				AModule mod = modules.First(m => m.Name.Equals(name));
+				wah.ReSettings.UnloadSettings(mod);
+				modules.Remove(mod);
 			}
 			else {
-				throw new ModuleLoadException(name + " module is not loaded");
+				throw new IOLoadException(name + " module is not loaded");
 			}
 		}
 
