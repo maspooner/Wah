@@ -1,4 +1,4 @@
 robocopy "mod-data" "Wah!Core\bin\Debug\mod-data" /E
 set rce=%errorlevel%
 
-if not %rce%==1 exit %rce% else exit 0
+if not %rce% leq 2 exit 0 else exit %rce%
