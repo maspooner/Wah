@@ -12,12 +12,14 @@ namespace Wah_Core {
 	internal class WahProcessing : AModule, IProcessor, IApi {
 		private const string SYSTEM_MODULE_NAME = "SYSTEM";
 		private const string SYSTEM_MODULE_VERSION = "Alpha nya 0";
+		private const string MACRO_ID = ";;";
 		private Program wah;
 		private bool isDone;
 		private object objLock;
 		private string primedCmd;
 		private Thread workerThread;
 		private IList<AModule> modules;
+		private IDictionary<string, string> macros;
 
 		public WahProcessing(Program wah) : base(SYSTEM_MODULE_NAME, SYSTEM_MODULE_VERSION) {
 			isDone = false;
@@ -26,10 +28,14 @@ namespace Wah_Core {
 			this.wah = wah;
 			workerThread = new Thread(RunCommandLoop);
 			modules = new List<AModule>();
+			macros = new Dictionary<string, string>();
 		}
 
 		public void InitializeModules() {
 			LoadModule("Wah!Commands", "Fuko");
+		}
+		public void InitializeMacros() {
+			macros.Add("home", "/f/");
 		}
 
 		public void LoadModule(string name) {
@@ -42,7 +48,8 @@ namespace Wah_Core {
 			AModule newModule = (AModule)Activator.CreateInstance(moduleType);
 			ValidateModule(newModule);
 			modules.Add(newModule);
-			wah.ReSettings.LoadSettings(wah.Disk, newModule);
+			//TODO
+			//wah.ReSettings.LoadSettings(wah.Disk, newModule);
 		}
 
 		public void ValidateModule(AModule mod) {
@@ -134,41 +141,24 @@ namespace Wah_Core {
 			}
 		}
 		/// <summary>
-		/// Executes the primed command
+		/// Executes the primed command, expanding macros beforehand
 		/// </summary>
 		public void Execute() {
-			wah.Putln("> " + primedCmd);
 			try {
-				//the first part should be a module or system command
-				string firstString = ParseFirst(primedCmd);
-				//module name
-				if (ModuleLoaded(firstString)) {
-					//find the module with that name
-					AModule module = FindModule(firstString);
-					// the rest of the line should be non-empty
-					string notModule = ParseRest(primedCmd, false);
-					//find the command name
-					string cmdName = ParseFirst(notModule);
-					//execute the command in the module with the possibly empty arguments
-					Execute(module, cmdName, ParseRest(notModule, true));
-				}
-				//system command
-				else {
-					//execute on this module the command with the possibly empty arguments
-					Execute(this, firstString, ParseRest(primedCmd, true));
-				}
+				//expand the macros on the line
+				primedCmd = ExpandMacros(primedCmd);
+				wah.Putln("> " + primedCmd);
+				Execute(primedCmd);
 			}
 			//top level exception handling
-			catch(UnhandledException ue) {
-				wah.PutErr("Wah! Error");
-				wah.PutErr(ue.GetInnerMessages());
+			catch (UnhandledException ue) {
+				wah.PutErr(ue.GetMessages());
 			}
 			catch (AWahException waex) {
-				wah.PutErr("Wah! Error");
-				wah.PutErr(waex.GetInnerMessages());
+				wah.PutErr(waex.GetMessages());
 			}
 			catch (Exception ex) {
-				wah.PutErr("Wah! Error");
+				wah.PutErr("Fatal Wah! Error");
 				wah.PutErr(ex.StackTrace);
 			}
 		}
@@ -213,12 +203,30 @@ namespace Wah_Core {
 				return line.Substring(space + 1).Trim();
 			}
 		}
+		private string ExpandMacros(string line) {
+			if (line.Contains(MACRO_ID)) {
+				int iMac = line.IndexOf(MACRO_ID);
+				//stuff before the macro
+				string lineBefore = line.Substring(0, iMac);
+				//stuff after the macro
+				string lineRest = line.Substring(iMac + MACRO_ID.Length);
+				foreach (string key in macros.Keys) {
+					if (lineRest.StartsWith(key)) {
+						return ExpandMacros(lineBefore + macros[key] + lineRest.Substring(key.Length));
+					}
+				}
+				throw new IllformedInputException("Could not find definition of a macro starting with " + MACRO_ID);
+			}
+			else {
+				return line;
+			}
+		}
 
 
 		////////////////////////////////////////////////////////////////////////////////
 		////  IApi methods
 		////////////////////////////////////////////////////////////////////////////////
-		
+
 		/// <summary>
 		/// Is the module with the given name loaded?
 		/// </summary>
@@ -227,6 +235,7 @@ namespace Wah_Core {
 		}
 		/// <summary>
 		/// Calls the command specified by the line
+		/// Does not look at macros
 		/// </summary>
 		public IReturn Call(string line) {
 			//first should be either a module or system command
@@ -252,8 +261,24 @@ namespace Wah_Core {
 		/// Executes the command specified by the given line
 		/// </summary>
 		public void Execute(string line) {
-			primedCmd = line;
-			Execute();
+			//the first part should be a module or system command
+			string firstString = ParseFirst(line);
+			//module name
+			if (ModuleLoaded(firstString)) {
+				//find the module with that name
+				AModule module = FindModule(firstString);
+				// the rest of the line should be non-empty
+				string notModule = ParseRest(line, false);
+				//find the command name
+				string cmdName = ParseFirst(notModule);
+				//execute the command in the module with the possibly empty arguments
+				Execute(module, cmdName, ParseRest(notModule, true));
+			}
+			//system command
+			else {
+				//execute on this module the command with the possibly empty arguments
+				Execute(this, firstString, ParseRest(line, true));
+			}
 		}
 
 		/// <summary>
@@ -280,6 +305,7 @@ namespace Wah_Core {
 			cmds.Add("c", Cmd_Close);
 			cmds.Add("shutdown", Cmd_Shutdown);
 			cmds.Add("clr", Cmd_Clear);
+			cmds.Add("macro", Cmd_Macro);
 
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
@@ -292,11 +318,11 @@ namespace Wah_Core {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Wah(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Wah(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			return new StringReturn("Wah!");
 		}
 
-		private IReturn Cmd_WahHuh(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_WahHuh(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			wah.Putln("Wah?", Color.Yellow);
 			string w = wah.Api.Call("wah!").AsString();
 			wah.Putln(w);
@@ -304,17 +330,17 @@ namespace Wah_Core {
 			return new StringReturn(w);
 		}
 
-		private IReturn Cmd_Cmdlist(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			if(args.Count == 0) {
+		private IReturn Cmd_Cmdlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			if (args.Count == 0) {
 				return Cmdlist_PrintModule(wah, this);
 			}
-			else if(args.Count == 1) {
+			else if (args.Count == 1) {
 				return Cmdlist_PrintModule(wah, FindModule(args[0]));
 			}
 			else {
 				throw new IllformedInputException("Wrong number of arguments");
 			}
-			
+
 		}
 
 		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
@@ -325,14 +351,14 @@ namespace Wah_Core {
 			return new ListReturn(mod.Commands.Select(pair => pair.Key).ToList());
 		}
 
-		private IReturn Cmd_Modlist(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Modlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			if (args.Count == 0) {
 				//call: modlist
 				foreach (AModule m in modules) {
 					wah.Putln(m.Name, Color.Yellow);
 				}
 			}
-			else if(args.Count == 1) {
+			else if (args.Count == 1) {
 				if (args[0].StartsWith("-")) {
 
 				}
@@ -343,19 +369,19 @@ namespace Wah_Core {
 			return new NoReturn();
 		}
 
-		private IReturn Cmd_Call(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Call(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			IReturn call = wah.Api.Call(string.Join(" ", args));
 			wah.Putln("Call Results:", Color.Cyan);
-            wah.Putln(call.AsString());
+			wah.Putln(call.AsString());
 			return call;
 		}
 
-		private IReturn Cmd_Help(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			if(args.Count == 0) {
+		private IReturn Cmd_Help(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			if (args.Count == 0) {
 				//call: help
 				Help_Module(this);
 			}
-			else if(args.Count == 1) {
+			else if (args.Count == 1) {
 				//call: help fuko
 				if (ModuleLoaded(args[0])) {
 					Help_Module(FindModule(args[0]));
@@ -366,7 +392,7 @@ namespace Wah_Core {
 				}
 				else {
 					throw new NoSuchItemException("no module/system command named " + args[0]);
-                }
+				}
 			}
 			else if (args.Count == 2) {
 				//call: help fuko hitode
@@ -401,15 +427,15 @@ namespace Wah_Core {
 			wah.ReDisk.LoadDisplayHelp(wah, mod, cmd);
 		}
 
-		private IReturn Cmd_About(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_About(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			if (args.Count == 0) {
 
 			}
 			throw new NotImplementedException();
 		}
 
-		private IReturn Cmd_Close(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			if(args.Count == 0) {
+		private IReturn Cmd_Close(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			if (args.Count == 0) {
 				wah.Display.HideWindow();
 			}
 			else {
@@ -418,13 +444,117 @@ namespace Wah_Core {
 			return new NoReturn();
 		}
 
-		private IReturn Cmd_Shutdown(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Shutdown(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			Environment.Exit(0);
 			return new NoReturn();
 		}
 
-		private IReturn Cmd_Clear(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Clear(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			wah.Display.ClearWindow();
+			return new NoReturn();
+		}
+
+		private IReturn Cmd_Macro(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			if (args.Count >= 1) {
+				if (args[0].Equals("add")) {
+					//call: marco add home my house
+					return Macro_Add(args);
+				}
+				else if (args[0].Equals("edit")) {
+					//call: marco edit home this is my home
+					return Macro_Edit(wah, args);
+
+				}
+				else if (args[0].Equals("delete")) {
+					//call: marco delete home
+					return Macro_Delete(args);
+				}
+				else if (args[0].Equals("list")) {
+					//call: macro list
+					if(args.Count == 1) {
+						wah.Putln("Registered Macros: ", Color.LightGreen);
+						foreach(string key in macros.Keys) {
+							wah.Putln(key + " -> " + macros[key]);
+						}
+						return new NoReturn();
+					}
+					else {
+						throw new IllformedInputException("subcommand list takes no arguments, silly!");
+					}
+				}
+				else {
+					throw new IllformedInputException(args[0] + " is not a recognized subcommand of marco");
+				}
+			}
+			else {
+				throw new IllformedInputException("Wrong number of arguments");
+			}
+		}
+
+		private IReturn Macro_Add(IList<string> args) {
+			//need add + from + to
+			if (args.Count >= 3) {
+				string from = args[1];
+				//already registered
+				if (macros.ContainsKey(from)) {
+					throw new InvalidStateException("macro " + from + " already has a definition.");
+				}
+				else {
+					//remove add command
+					args.RemoveAt(0);
+					//remove from macro to get the to part
+					args.RemoveAt(0);
+					//join the rest of the line to get the to part
+					string to = string.Join(" ", args);
+					//add the macro
+					macros.Add(from, to);
+				}
+			}
+			else {
+				throw new IllformedInputException("add subcommand must take at least 3 arguments");
+			}
+			return new NoReturn();
+		}
+
+		private IReturn Macro_Edit(ICore wah, IList<string> args) {
+			//need edit + from + to
+			if (args.Count >= 3) {
+				string from = args[1];
+				//remove "edit"
+				args.RemoveAt(0);
+				//remove from portion
+				args.RemoveAt(0);
+				//rest of line is to
+				string to = string.Join(" ", args);
+				//not already registered
+				if (!macros.ContainsKey(from)) {
+					//register real quick
+					wah.Api.Call("macro add " + from + " " + to);
+				}
+				//set the macro to the rest of the line
+				macros[from] = to;
+			}
+			else {
+				throw new IllformedInputException("edit subcommand must take at least 3 arguments");
+			}
+			return new NoReturn();
+		}
+
+		private IReturn Macro_Delete(IList<string> args) {
+			//need delete + from
+			if (args.Count == 2) {
+				string from = args[1];
+				//already registered
+				if (macros.ContainsKey(from)) {
+					macros.Remove(from);
+				}
+				else {
+					throw new InvalidStateException(from + " macro does not exist");
+				}
+			}
+			else {
+				throw new IllformedInputException("delete subcommand must take 2 arguments");
+			}
 			return new NoReturn();
 		}
 
@@ -444,19 +574,19 @@ namespace Wah_Core {
 		//	return new NoReturn();
 		//}
 
-		private IReturn Cmd_Chain1(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Chain1(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			int i = wah.Api.Call("chn2").AsInt();
 			wah.Putln("i: " + i);
 			return new NoReturn();
 		}
 
-		private IReturn Cmd_Chain2(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Chain2(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			bool b = wah.Api.Call("chn3 true").AsBool();
 			return new IntReturn(b ? 5 : 6);
 		}
 
-		private IReturn Cmd_Chain3(ICore wah, List<string> args, Dictionary<string, string> flags) {
-			if(args.Count == 0) {
+		private IReturn Cmd_Chain3(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			if (args.Count == 0) {
 				return new NoReturn();
 			}
 			else {

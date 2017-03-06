@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Wah_Interface {
 	public abstract class AModule {
 		private static readonly char[] DELIMS = new char[] { ' ' };
-		public delegate IReturn CommandDelegate(ICore wah, List<string> args, Dictionary<string, string> flags);
+		public delegate IReturn CommandDelegate(ICore wah, IList<string> args, IDictionary<string, string> flags);
 		public string Name { get; private set; }
 		public string Version { get; private set; }
 		public Dictionary<string, CommandDelegate> Commands { get; private set; }

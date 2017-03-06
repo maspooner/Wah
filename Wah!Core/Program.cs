@@ -45,6 +45,7 @@ namespace Wah_Core {
 
 			//setup
 			wpro.InitializeModules();
+			wpro.InitializeMacros();
 			//no mod-data
 			if (wdisk.AttemptFirstTimeSetup()) {
 				//TODO

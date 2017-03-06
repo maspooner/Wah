@@ -33,6 +33,7 @@ namespace Wah_Interface {
 	public interface IProcessor {
 		//prohibit access
 		void InitializeModules();
+		void InitializeMacros();
 		void LoadModule(string dllName, string moduleName);
 		void LoadModuleLibrary(string dllName);
 		void LoadModule(string name);

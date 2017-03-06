@@ -29,17 +29,17 @@ namespace Wah_Commands {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Namae(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Namae(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			wah.Putln("FUKO MODULE DESU");
 			return new StringReturn("Fuko desu yo~!");
 		}
 
-		private IReturn Cmd_HitodeKangaeru(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_HitodeKangaeru(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			wah.Display.ShowPersona(new BouncingChangeAnimation(wah.Disk.LoadImageDir(this, "anime1", ".gif"), System.Drawing.Point.Empty));
 			while (true);
 		}
 
-		private IReturn Cmd_Miru(ICore wah, List<string> args, Dictionary<string, string> flags) {
+		private IReturn Cmd_Miru(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			wah.Display.ShowPersona(new SimpleImage(wah.Disk.LoadImage(this, "fuko.png")));
 			return new NoReturn();
 		}
