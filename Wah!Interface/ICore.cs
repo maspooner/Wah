@@ -74,31 +74,31 @@ namespace Wah_Interface {
 		void RunShutdownOperations();
 		void LoadDisplayHelp(ICore wah, AModule mod, string helpName);
 		System.Reflection.Assembly LoadAssembly(string name);
+		bool EnsureFullDir(string dirPath);
+		bool EnsureFullFile(string filePath);
 	}
 	public interface IDisk {
 		//allow access
-		string DataDir(AModule mod);
-		string HelpDir(AModule mod);
-		string SettingsFile(AModule mod);
-		bool EnsureDir(string dirName);
-	    bool EnsureFile(string fileName);
+		string RelDataDir(AModule mod);
         void Save(string fileName, byte[] data);
 		byte[] Load(string fileName);
 		Bitmap LoadImage(AModule mod, string fileName);
 		Bitmap[] LoadImageDir(AModule mod, string dirName, string ext);
-		string[] LoadSettings(AModule mod, string fileName);
+		string[] LoadLines(AModule mod, string fileName);
+		string[] LoadSettings(AModule mod);
+		bool EnsureRelDir(string relDirPath);
+		bool EnsureRelFile(string relFilePath);
 	}
 	public interface IReSettings {
 		//prohibit access
-		void LoadSettings(IDisk wdisk, AModule mod);
-		void UnloadSettings(AModule mod);
+		void IncludeSettings(IDisk wdisk, AModule mod);
+		void ExcludeSettings(AModule mod);
 		byte[] ToBytes();
+		void RegisterSetting(AModule mod, string name, string defValue, SettingType type);
 		void Set(AModule mod, string name, string content);
 	}
 	public interface ISettings {
 		//allow access
-		void RegisterSetting(AModule mod, string name, string defValue, SettingType type);
-
 		string GetString(AModule mod, string name);
 		int GetInt(AModule mod, string name);
 		bool GetBool(AModule mod, string name);

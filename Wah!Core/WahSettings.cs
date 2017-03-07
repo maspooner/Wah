@@ -63,23 +63,22 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
-		public void LoadSettings(IDisk disk, AModule mod) {
+		public void IncludeSettings(IDisk disk, AModule mod) {
 			if (settings.ContainsKey(mod.Name)) {
 				throw new InvalidStateException("Settings for module " + mod.Name + " are already loaded");
 			}
-			//create the settings file if not there
-			disk.EnsureFile(disk.SettingsFile(mod));
-			string[] lines = disk.LoadSettings(mod, "settings.txt");
+			
+			string[] lines = disk.LoadSettings(mod);
 			IEnumerable<SettingPair> pairs = lines.Select(l => new SettingPair(l));
 			//initialize settings of module
-			mod.InitializeSettings(this);
+			mod.SetDefaultSettings(this);
 			//set all the ones from file
 			foreach(SettingPair pair in pairs) {
 				Set(mod, pair.Name, pair.Content);
 			}
 		}
 
-		public void UnloadSettings(AModule mod) {
+		public void ExcludeSettings(AModule mod) {
 			throw new NotImplementedException();
 		}
 	}

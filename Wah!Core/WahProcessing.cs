@@ -32,6 +32,8 @@ namespace Wah_Core {
 		}
 
 		public void InitializeModules() {
+			//include the system settings
+			wah.ReSettings.IncludeSettings(wah.Disk, this);
 			LoadModule("Wah!Commands", "Fuko");
 		}
 		public void InitializeMacros() {
@@ -42,14 +44,21 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
+		public void LoadModule(AModule mod) {
+			if(modules.Any(m => mod.Name.Equals(m.Name))) {
+				throw new InvalidStateException("Module " + mod.Name + " is already loaded");
+			}
+			
+		}
+
 		public void LoadModule(string dllName, string moduleName) {
 			Assembly dll = wah.ReDisk.LoadAssembly(dllName);
 			Type moduleType = dll.GetTypes().First(t => t.Name.Equals(moduleName));
 			AModule newModule = (AModule)Activator.CreateInstance(moduleType);
 			ValidateModule(newModule);
 			modules.Add(newModule);
-			//TODO
-			//wah.ReSettings.LoadSettings(wah.Disk, newModule);
+			//set all settings from the settings file
+			wah.ReSettings.IncludeSettings(wah.Disk, newModule);
 		}
 
 		public void ValidateModule(AModule mod) {
@@ -65,7 +74,7 @@ namespace Wah_Core {
 		public void UnloadModule(string name) {
 			if (modules.Any(m => m.Name.Equals(name))) {
 				AModule mod = modules.First(m => m.Name.Equals(name));
-				wah.ReSettings.UnloadSettings(mod);
+				wah.ReSettings.ExcludeSettings(mod);
 				modules.Remove(mod);
 			}
 			else {
@@ -312,8 +321,8 @@ namespace Wah_Core {
 			cmds.Add("chn3", Cmd_Chain3);
 			return cmds;
 		}
-		public override void InitializeSettings(ISettings sets) {
-			throw new NotImplementedException();
+		public override void SetDefaultSettings(IReSettings sets) {
+			sets.RegisterSetting(this, "web.browser", "firefox", SettingType.STRING);
 		}
 		/************************************************
 		***  Commands

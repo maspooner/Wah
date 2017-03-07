@@ -57,6 +57,9 @@ namespace Wah_Interface {
 		public IOLoadException(string message) : base(message) {
 
 		}
+		public IOLoadException(string message, Exception inner) : base(message, inner) {
+
+		}
 	}
 	public class HelpParseException : AWahException {
 		public HelpParseException(string message) : base(message) {

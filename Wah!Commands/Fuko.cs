@@ -21,7 +21,7 @@ namespace Wah_Commands {
 			return cmds;
 		}
 
-		public override void InitializeSettings(ISettings sets) {
+		public override void SetDefaultSettings(IReSettings sets) {
 			sets.RegisterSetting(this, "login.timeout", "120", SettingType.INT);
 
 		}

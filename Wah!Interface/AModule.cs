@@ -14,11 +14,11 @@ namespace Wah_Interface {
 			Commands = InitializeCommands();
 		}
 		public abstract Dictionary<string, CommandDelegate> InitializeCommands();
-		public abstract void InitializeSettings(ISettings sets);
+		public abstract void SetDefaultSettings(IReSettings sets);
 		public IReturn Handle(ICore wah, string cmd, string rest) {
 			if (Commands.ContainsKey(cmd)) {
-				List<string> args = new List<string>(rest.Split(DELIMS, StringSplitOptions.RemoveEmptyEntries));
-				Dictionary<string, string> flags = new Dictionary<string, string>();
+				IList<string> args = new List<string>(rest.Split(DELIMS, StringSplitOptions.RemoveEmptyEntries));
+				IDictionary<string, string> flags = new Dictionary<string, string>();
 				for(int i = 0; i < args.Count; i++) {
 					if(args[i].StartsWith("-") || args[i].StartsWith("--")) {
 						string flag = args[i];

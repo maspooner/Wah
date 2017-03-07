@@ -14,6 +14,7 @@ namespace Wah_Core {
 		private const string MAGIC_COLOR_START = ",";
 		private const string MAGIC_COLOR_END = ".";
 		private static readonly Color HELP_COLOR = Color.LightGray;
+		private const string SETTINGS_FILE = "settings.txt";
 
 		private WahProcessing wpro;
 		private string basePath;
@@ -22,37 +23,44 @@ namespace Wah_Core {
 			basePath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 		}
 		//relative
-		private string ModuleDir(AModule mod) { return Path.Combine("mod-data", mod.Name); }
-		public string DataDir(AModule mod) { return Path.Combine(ModuleDir(mod), "data"); }
-		public string HelpDir(AModule mod) { return Path.Combine(ModuleDir(mod), "help"); }
-		public string SettingsFile(AModule mod) { return Path.Combine(ModuleDir(mod), "settings.txt"); }
+		private string RelModuleDir(AModule mod) { return Path.Combine("mod-data", mod.Name); }
+		public string RelDataDir(AModule mod) { return Path.Combine(RelModuleDir(mod), "data"); }
 		//absolute
-		private string FullModuleDir(AModule mod) { return Path.Combine(basePath, ModuleDir(mod)); }
-		private string FullDataDir(AModule mod) { return Path.Combine(basePath, DataDir(mod)); }
-		private string FullHelpDir(AModule mod) { return Path.Combine(basePath, HelpDir(mod)); }
-		private string FullSettingsFile(AModule mod) { return Path.Combine(basePath, SettingsFile(mod)); }
+		private string FullModuleDir(AModule mod) { return Path.Combine(basePath, RelModuleDir(mod)); }
+		private string FullDataDir(AModule mod) { return Path.Combine(basePath, RelDataDir(mod)); }
+		private string FullHelpDir(AModule mod) { return Path.Combine(basePath, 
+			Path.Combine(RelModuleDir(mod), "help")); }
 
 		/// <summary>
 		/// Ensures a directory path exists, by creating it if it doesn't exist
 		/// </summary>
 		/// <returns>TRUE if had to create a new directory</returns>
-		public bool EnsureDir(string dirName) {
-			if (Directory.Exists(Path.Combine(basePath, dirName))) {
+		public bool EnsureFullDir(string dirPath) {
+			if (Directory.Exists(dirPath)) {
 				return false;
 			}
 			else {
-				Directory.CreateDirectory(Path.Combine(basePath, dirName));
+				Directory.CreateDirectory(dirPath);
 				return true;
 			}
 		}
-		public bool EnsureFile(string fileName) {
-			if(File.Exists(Path.Combine(basePath, fileName))) {
+		public bool EnsureFullFile(string filePath) {
+			if(File.Exists(filePath)) {
 				return false;
 			}
 			else {
-				File.Create(Path.Combine(basePath, fileName));
+				//create any necessary folders in the path
+				EnsureFullDir(Path.GetDirectoryName(filePath));
+				//create file and immediately close it
+				File.Create(filePath).Dispose();
 				return true;
 			}
+		}
+		public bool EnsureRelDir(string relDirPath) {
+			return EnsureFullDir(Path.Combine(basePath, relDirPath));
+		}
+		public bool EnsureRelFile(string relFilePath) {
+			return EnsureFullFile(Path.Combine(basePath, relFilePath));
 		}
 
 		/// <summary>
@@ -142,11 +150,7 @@ namespace Wah_Core {
 		}
 
 		public bool AttemptFirstTimeSetup() {
-			if (EnsureDir(ModuleDir(wpro))) {
-
-				return true;
-			}
-			return false;
+			return EnsureFullDir(FullModuleDir(wpro));
 		}
 
 		//public byte[] LoadData(string fileName) {
@@ -156,14 +160,27 @@ namespace Wah_Core {
 		public byte[] Load(string fileName) {
 			throw new NotImplementedException();
 		}
-
-		public string[] LoadSettings(AModule mod, string fileName) {
+		/// <summary>
+		/// Load lines of a text file from the given module's data folder
+		/// </summary>
+		/// <param name="mod">the module folder to look in</param>
+		/// <param name="fileName">just the file name of the file in the module's data folder</param>
+		public string[] LoadLines(AModule mod, string fileName) {
+			string path = Path.Combine(FullDataDir(mod), fileName);
 			try {
-				return File.ReadAllLines(FullSettingsFile(mod));
+				return File.ReadAllLines(path);
 			}
-			catch {
-				throw new IOLoadException("Could not read the lines of resource " + fileName + " in module " + mod.Name);
+			catch (Exception ex) {
+				throw new IOLoadException("Could not read the lines of resource " 
+					+ fileName + " for module " + mod.Name, ex);
 			}
+		}
+		public string[] LoadSettings(AModule mod) {
+			string settingsPath = Path.Combine(FullDataDir(mod), SETTINGS_FILE);
+			//ensure the settings file
+			EnsureFullFile(settingsPath);
+			//load the settings
+			return LoadLines(mod, SETTINGS_FILE);
 		}
 
 		public Bitmap LoadImage(AModule mod, string fileName) {
