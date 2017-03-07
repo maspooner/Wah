@@ -12,16 +12,22 @@ namespace Wah_Interface {
 		public AWahException(string message, Exception innerException) : base(message, innerException) {
 
 		}
+		public void OutputError(ICore wah) {
+			if (!IsThreadAbort()) {
+				wah.PutErr(GetMessages());
+			}
+		}
+		private bool IsThreadAbort() {
+			if(InnerException is System.Threading.ThreadAbortException) {
+				return true;
+			}
+			if (InnerException != null && InnerException is AWahException) {
+				return (InnerException as AWahException).IsThreadAbort();
+			}
+			return false;
+		}
 		public string GetMessages() {
 			return GetMessages(this, 0);
-		}
-		public string GetInnerMessages() {
-			if(InnerException == null) {
-				return "";
-			}
-			else {
-				return GetMessages(InnerException, 0);
-			}
 		}
 		protected string GetMessages(Exception ex, int tabs) {
 			string sTabs = new string(' ', tabs * 2);

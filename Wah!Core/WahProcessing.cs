@@ -160,11 +160,8 @@ namespace Wah_Core {
 				Execute(primedCmd);
 			}
 			//top level exception handling
-			catch (UnhandledException ue) {
-				wah.PutErr(ue.GetMessages());
-			}
 			catch (AWahException waex) {
-				wah.PutErr(waex.GetMessages());
+				waex.OutputError(wah);
 			}
 			catch (Exception ex) {
 				wah.PutErr("Fatal Wah! Error");
