@@ -25,13 +25,15 @@ namespace Wah_Interface {
 						args.RemoveAt(i);
 						i--;
 						string[] flagValue = flag.Split(new char[] { '=' }, 2);
-						if(flagValue.Length == 1) {
-							//only a flag
-							flags.Add(flag, "");
-						}
-						else {
-							//flag=value
-							flags.Add(flagValue[0], flagValue[1]);
+						if (!flags.ContainsKey(flagValue[0])) {
+							if (flagValue.Length == 1) {
+								//only a flag
+								flags.Add(flag, "");
+							}
+							else {
+								//flag=value
+								flags.Add(flagValue[0], flagValue[1]);
+							}
 						}
 					}
 				}
