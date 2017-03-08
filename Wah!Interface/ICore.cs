@@ -74,6 +74,7 @@ namespace Wah_Interface {
 		void RunShutdownOperations();
 		void LoadDisplayHelp(ICore wah, AModule mod, string helpName);
 		System.Reflection.Assembly LoadAssembly(string name);
+		System.Collections.Generic.IEnumerable<System.Reflection.Assembly> LoadAllAssemblies();
 		bool EnsureFullDir(string dirPath);
 		bool EnsureFullFile(string filePath);
 	}

@@ -208,8 +208,11 @@ namespace Wah_Core {
 		}
 
 		public Assembly LoadAssembly(string name) {
-			Console.WriteLine(Path.Combine(basePath, name + ".dll"));
 			return Assembly.LoadFile(Path.Combine(basePath, name + ".dll"));
+		}
+		public IEnumerable<Assembly> LoadAllAssemblies() {
+			string[] dlls = Directory.GetFiles(basePath, "*.dll", SearchOption.TopDirectoryOnly);
+			return dlls.Select(dll => Assembly.LoadFile(dll));
 		}
 
 		public void RunShutdownOperations() {

@@ -45,10 +45,10 @@ namespace Wah_Core {
 		}
 
 		public void LoadModule(AModule mod) {
-			if(modules.Any(m => mod.Name.Equals(m.Name))) {
+			if (modules.Any(m => mod.Name.Equals(m.Name))) {
 				throw new InvalidStateException("Module " + mod.Name + " is already loaded");
 			}
-			
+
 		}
 
 		public void LoadModule(string dllName, string moduleName) {
@@ -98,7 +98,6 @@ namespace Wah_Core {
 				if (!isDone) {
 					Execute();
 				}
-				wah.Putln("");
 			}
 		}
 
@@ -350,7 +349,7 @@ namespace Wah_Core {
 		}
 
 		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
-			wah.Putln("Showing commands for module " + mod.Name);
+			wah.Putln("Showing commands for module " + mod.Name, Color.Aqua);
 			foreach (string cmd in mod.Commands.Select(pair => pair.Key)) {
 				wah.Putln(cmd, Color.Yellow);
 			}
@@ -359,14 +358,36 @@ namespace Wah_Core {
 
 		private IReturn Cmd_Modlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			if (args.Count == 0) {
-				//call: modlist
-				foreach (AModule m in modules) {
-					wah.Putln(m.Name, Color.Yellow);
+				//show loaded and unloaded modules
+				if (flags.ContainsKey("-a")) {
+					if(!flags.ContainsKey("-u"))
+						flags.Add("-u", "");
+					if (!flags.ContainsKey("-l"))
+						flags.Add("-l", "");
 				}
-			}
-			else if (args.Count == 1) {
-				if (args[0].StartsWith("-")) {
-
+				//show unloaded modules
+				if (flags.ContainsKey("-u")) {
+					wah.Putln("Unloaded modules: ", Color.Chartreuse);
+					//call: modlist -u
+					//for each found assembly
+					foreach (Assembly a in this.wah.ReDisk.LoadAllAssemblies()) {
+						//for each AModule type in the assembly
+						foreach (Type t in a.GetTypes().Where(q => q.BaseType == typeof(AModule))) {
+							AModule newModule = (AModule)Activator.CreateInstance(t);
+							//only print unloaded modules
+							if (!ModuleLoaded(newModule.Name)) {
+								wah.Putln(newModule.Name, Color.LightGray);
+							}
+						}
+					}
+				}
+				if (flags.Count == 0 || flags.ContainsKey("-l")) {
+					//show loaded modules
+					//call: modlist OR modlist -l
+					wah.Putln("Loaded modules: ", Color.Gold);
+					foreach (AModule m in modules) {
+						wah.Putln(m.Name, Color.Yellow);
+					}
 				}
 			}
 			else {
@@ -477,9 +498,9 @@ namespace Wah_Core {
 				}
 				else if (args[0].Equals("list")) {
 					//call: macro list
-					if(args.Count == 1) {
+					if (args.Count == 1) {
 						wah.Putln("Registered Macros: ", Color.LightGreen);
-						foreach(string key in macros.Keys) {
+						foreach (string key in macros.Keys) {
 							wah.Putln(key + " -> " + macros[key]);
 						}
 						return new NoReturn();
