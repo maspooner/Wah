@@ -31,8 +31,13 @@ namespace Wah_Interface {
 								flags.Add(flag, "");
 							}
 							else {
-								//flag=value
-								flags.Add(flagValue[0], flagValue[1]);
+								string val = flagValue[1];
+								//surrounded by "", remove them
+								if(val.StartsWith("\"") && val.EndsWith("\"")) {
+									val = val.Substring(1, val.Length - 2);
+								}
+								//flag=value | flag="multi word flag"
+								flags.Add(flagValue[0], val);
 							}
 						}
 					}

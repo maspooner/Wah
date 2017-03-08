@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace Wah_Core {
 		private IProcessor wpro;
 		private CancellationTokenSource animeToken;
 		private Task animationTask;
+		private IList<string> history;
+		private int iHistory;
 
 		private TextBox inputBox;
 		private RichTextBox outputBox;
@@ -19,6 +22,8 @@ namespace Wah_Core {
 		private Label inputLabel;
 		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
+			history = new List<string>();
+			iHistory = -1; // -1 denotes selecting nothing from the history
 			animeToken = new CancellationTokenSource();
 			animationTask = new Task(new Action(AnimationLoop), animeToken.Token, TaskCreationOptions.LongRunning);
 			inputBox = new TextBox();
@@ -36,7 +41,8 @@ namespace Wah_Core {
 			inputBox.ForeColor = Color.White;
 			inputBox.Font = new Font(inputBox.Font, FontStyle.Bold);
 			inputBox.AcceptsReturn = true;
-			inputBox.PreviewKeyDown += TextBox_KeyDown;
+			inputBox.PreviewKeyDown += InputBox_PreviewKeyDown;
+			inputBox.KeyDown += InputBox_KeyDown;
 			//outputBox
 			outputBox.ReadOnly = true;
 			outputBox.BackColor = Color.Black;
@@ -96,18 +102,6 @@ namespace Wah_Core {
 				CallOnUI(botPic.Tick);
 			}
 		}
-
-		protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-			if (keyData == Keys.Enter) {
-				//wpro.Prepare("wah? fuko.partyhat true");
-				//wpro.Prepare("fuko get gmail");
-				string input = inputBox.Text;
-				inputBox.Clear();
-				wpro.Prepare(input);
-				return true;
-			}
-			return base.ProcessCmdKey(ref msg, keyData);
-		}
 		protected override void OnLoad(EventArgs e) {
 			base.OnLoad(e);
 			Location = new Point(Screen.PrimaryScreen.Bounds.Width - Bounds.Width, 0);
@@ -129,11 +123,56 @@ namespace Wah_Core {
 				base.WndProc(ref m);
 			}
 		}
-		private void TextBox_KeyDown(object sender, PreviewKeyDownEventArgs e) {
+		private void InputBox_KeyDown(object sender, KeyEventArgs e) {
+			//ignore the default behavior of up/down keys causing cursor movement
+			if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down) {
+				e.Handled = true;
+			}
+			else {
+				base.OnKeyDown(e);
+			}
+
+		}
+		private void InputBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
 			if (e.Control && e.KeyCode == Keys.C) {
 				//kill currently running command
 				wpro.InterruptJob();
 			}
+			//move to previous item in history
+			else if (e.KeyCode == Keys.Up) {
+				if (iHistory + 1 < history.Count) {
+					iHistory++;
+					ChangeInputText(history[iHistory]);
+				}
+			}
+			//move to next item in history
+			else if (e.KeyCode == Keys.Down) {
+				if (iHistory - 1 >= -1) {
+					iHistory--;
+					ChangeInputText(iHistory == -1 ? "" : history[iHistory]);
+				}
+			}
+			//execute command
+			else if (e.KeyCode == Keys.Enter) {
+				//wpro.Prepare("wah? fuko.partyhat true");
+				//wpro.Prepare("fuko get gmail");
+				string input = inputBox.Text;
+				if (input.Trim().Length > 0) {
+					//add it to the front of history
+					history.Insert(0, input);
+					//select none from history
+					iHistory = -1;
+					//clear the input box
+					inputBox.Clear();
+					//prepare the command for execution
+					wpro.Prepare(input);
+				}
+			}
+		}
+		private void ChangeInputText(string text) {
+			inputBox.Text = text;
+			inputBox.SelectionStart = inputBox.TextLength;
+			inputBox.SelectionLength = 0;
 		}
 
 		public void Print(string txt, Color col) {
@@ -185,7 +224,7 @@ namespace Wah_Core {
 			base.OnPaint(e);
 			e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
 			e.Graphics.DrawImage(visual.Image, visual.Location);
-        }
+		}
 
 		public void UpdateVisual(IVisual vis) {
 			this.visual = vis;

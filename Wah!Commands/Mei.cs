@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,19 @@ namespace Wah_Commands {
 
 		public override void SetDefaultSettings(IReSettings sets) {
 			sets.RegisterSetting(this, "image.quality", "0", SettingType.INT);
+		}
+
+		/************************************************
+		***  Commands
+		*************************************************/
+		private IReturn Cmd_Scale(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			//Usage: mei scale -i=[img-name|dir-name] -o=[out-file|out-dir] -h=300 -w=200
+			//TODO ImageReturn, display automatically image in picture box
+			return new NoReturn();
+		}
+		private IReturn Cmd_Chop(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			//Usage: mei chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200
+			return new NoReturn();
 		}
 	}
 }

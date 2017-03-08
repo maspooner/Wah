@@ -44,13 +44,6 @@ namespace Wah_Core {
 			throw new NotImplementedException();
 		}
 
-		public void LoadModule(AModule mod) {
-			if (modules.Any(m => mod.Name.Equals(m.Name))) {
-				throw new InvalidStateException("Module " + mod.Name + " is already loaded");
-			}
-
-		}
-
 		public void LoadModule(string dllName, string moduleName) {
 			Assembly dll = wah.ReDisk.LoadAssembly(dllName);
 			Type moduleType = dll.GetTypes().First(t => t.Name.Equals(moduleName));
