@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,8 +10,10 @@ namespace Wah_Interface {
 		string AsString();
 		int AsInt();
 		bool AsBool();
+		Bitmap AsBitmap();
 	}
 	public class NoReturn : IReturn {
+
 		public bool AsBool() {
 			throw new NoReturnException();
 		}
@@ -20,6 +23,9 @@ namespace Wah_Interface {
 		}
 
 		public string AsString() {
+			throw new NoReturnException();
+		}
+		public Bitmap AsBitmap() {
 			throw new NoReturnException();
 		}
 	}
@@ -51,6 +57,9 @@ namespace Wah_Interface {
 		public string AsString() {
 			return Value;
 		}
+		public Bitmap AsBitmap() {
+			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
+		}
 	}
 	public class IntReturn : IReturn {
 		public int Value { get; private set; }
@@ -68,6 +77,9 @@ namespace Wah_Interface {
 
 		public bool AsBool() {
 			return Value != 0;
+		}
+		public Bitmap AsBitmap() {
+			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
 		}
 	}
 	public class BoolReturn : IReturn {
@@ -87,16 +99,19 @@ namespace Wah_Interface {
 		public bool AsBool() {
 			return Value;
 		}
+		public Bitmap AsBitmap() {
+			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
+		}
 	}
 
 	public class ListReturn : IReturn {
-		public IList<string> Value { get; private set; }
-		public ListReturn(IList<string> value) {
+		public IList<IReturn> Value { get; private set; }
+		public ListReturn(IList<IReturn> value) {
 			Value = value;
 		}
 
 		public string AsString() {
-			return string.Join("\n", Value);
+			return Value.Aggregate("", (soFar, next) => soFar + "\n" + next.AsString());
 		}
 
 		public int AsInt() {
@@ -105,6 +120,30 @@ namespace Wah_Interface {
 
 		public bool AsBool() {
 			throw new IllformedInputException("data of ListReturn cannot be cast to a bool");
+		}
+		public Bitmap AsBitmap() {
+			throw new IllformedInputException("data of ListReturn cannot be cast to a bitmap");
+		}
+	}
+	public class BitmapReturn : IReturn {
+		public Bitmap Value { get; private set; }
+		public BitmapReturn(Bitmap value) {
+			Value = value;
+		}
+		public Bitmap AsBitmap() {
+			return Value;
+		}
+
+		public bool AsBool() {
+			return Value != null;
+		}
+
+		public int AsInt() {
+			throw new IllformedInputException("bitmap cannot be cast to an int");
+		}
+
+		public string AsString() {
+			return Value.ToString();
 		}
 	}
 
