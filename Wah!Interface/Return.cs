@@ -11,6 +11,15 @@ namespace Wah_Interface {
 		int AsInt();
 		bool AsBool();
 		Bitmap AsBitmap();
+		R Accept<R>(IReturnVisitor<R> irv);
+	}
+	public interface IReturnVisitor<R> {
+		R VisitNo(NoReturn nr);
+		R VisitString(StringReturn sr);
+		R VisitInt(IntReturn ir);
+		R VisitBool(BoolReturn br);
+		R VisitList(ListReturn lr);
+		R VisitBitmap(BitmapReturn br);
 	}
 	public class NoReturn : IReturn {
 
@@ -28,12 +37,18 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new NoReturnException();
 		}
+		public R Accept<R>(IReturnVisitor<R> irv) {
+			return irv.VisitNo(this);
+		}
 	}
 	public class StringReturn : IReturn {
 		public string Value { get; private set; }
-		public StringReturn(string value) {
+		public Color Color { get; private set; }
+		public StringReturn(string value, Color color) {
 			Value = value;
+			Color = color;
 		}
+		public StringReturn(string value) : this(value, Color.Yellow) { }
 		public bool AsBool() {
 			bool b = false;
 			if (bool.TryParse(Value, out b)) {
@@ -60,6 +75,9 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
 		}
+		public R Accept<R>(IReturnVisitor<R> irv) {
+			return irv.VisitString(this);
+		}
 	}
 	public class IntReturn : IReturn {
 		public int Value { get; private set; }
@@ -81,6 +99,9 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
 		}
+		public R Accept<R>(IReturnVisitor<R> irv) {
+			return irv.VisitInt(this);
+		}
 	}
 	public class BoolReturn : IReturn {
 		public bool Value { get; private set; }
@@ -101,6 +122,9 @@ namespace Wah_Interface {
 		}
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
+		}
+		public R Accept<R>(IReturnVisitor<R> irv) {
+			return irv.VisitBool(this);
 		}
 	}
 
@@ -124,6 +148,9 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data of ListReturn cannot be cast to a bitmap");
 		}
+		public R Accept<R>(IReturnVisitor<R> irv) {
+			return irv.VisitList(this);
+		}
 	}
 	public class BitmapReturn : IReturn {
 		public Bitmap Value { get; private set; }
@@ -144,6 +171,47 @@ namespace Wah_Interface {
 
 		public string AsString() {
 			return Value.ToString();
+		}
+		public R Accept<R>(IReturnVisitor<R> irv) {
+			return irv.VisitBitmap(this);
+		}
+	}
+
+	public class OutputVisitor : IReturnVisitor<object> {
+		private ICore wah;
+		public OutputVisitor(ICore wah) {
+			this.wah = wah;
+		}
+		public object VisitBitmap(BitmapReturn br) {
+			wah.Putln("Bitmap", Color.Aquamarine);
+			wah.Display.ShowExtra(new SimpleImage(br.AsBitmap()));
+			return null;
+		}
+
+		public object VisitBool(BoolReturn br) {
+			wah.Putln(br.AsString(), Color.Honeydew);
+			return null;
+		}
+
+		public object VisitInt(IntReturn ir) {
+			wah.Putln(ir.AsString(), Color.OrangeRed);
+			return null;
+		}
+
+		public object VisitList(ListReturn lr) {
+			foreach (IReturn ir in lr.Value) {
+				ir.Accept(this);
+			}
+			return null;
+		}
+
+		public object VisitNo(NoReturn nr) {
+			return null;
+		}
+
+		public object VisitString(StringReturn sr) {
+			wah.Putln(sr.Value, sr.Color);
+			return null;
 		}
 	}
 

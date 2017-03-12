@@ -19,8 +19,8 @@ namespace Wah_Interface {
 			if (Commands.ContainsKey(cmd)) {
 				IList<string> args = new List<string>(rest.Split(DELIMS, StringSplitOptions.RemoveEmptyEntries));
 				IDictionary<string, string> flags = new Dictionary<string, string>();
-				for(int i = 0; i < args.Count; i++) {
-					if(args[i].StartsWith("-") || args[i].StartsWith("--")) {
+				for (int i = 0; i < args.Count; i++) {
+					if (args[i].StartsWith("-") || args[i].StartsWith("--")) {
 						string flag = args[i];
 						args.RemoveAt(i);
 						i--;
@@ -33,7 +33,7 @@ namespace Wah_Interface {
 							else {
 								string val = flagValue[1];
 								//surrounded by "", remove them
-								if(val.StartsWith("\"") && val.EndsWith("\"")) {
+								if (val.StartsWith("\"") && val.EndsWith("\"")) {
 									val = val.Substring(1, val.Length - 2);
 								}
 								//flag=value | flag="multi word flag"
@@ -42,18 +42,11 @@ namespace Wah_Interface {
 						}
 					}
 				}
-                return Commands[cmd](wah, args, flags);
+				return Commands[cmd](wah, args, flags);
 			}
 			else {
 				throw new NoSuchItemException(cmd + " does not exist, desun!");
 			}
 		}
-		public void Execute(ICore wah, string cmd, string args) {
-			Handle(wah, cmd, args);
-		}
-		public IReturn Call(ICore wah, string cmd, string args) {
-			return Handle(wah, cmd, args);
-		}
-
 	}
 }

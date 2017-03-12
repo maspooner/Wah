@@ -74,8 +74,8 @@ namespace Wah_Commands {
 				throw new IllformedInputException("Too many arguments");
 			}
 		}
-		private BitmapReturn Scale_ScaleOne(string filePath) {
-
+		private IReturn Scale_ScaleOne(string filePath) {
+			return new NoReturn();
 		}
 
 		private IReturn Cmd_Chop(ICore wah, IList<string> args, IDictionary<string, string> flags) {

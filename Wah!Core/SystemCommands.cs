@@ -19,7 +19,6 @@ namespace Wah_Core {
 			cmds.Add("cmdlist", Cmd_Cmdlist);
 			cmds.Add("modlist", Cmd_Modlist);
 			cmds.Add("help", Cmd_Help);
-			cmds.Add("call", Cmd_Call);
 			cmds.Add("c", Cmd_Close);
 			cmds.Add("shutdown", Cmd_Shutdown);
 			cmds.Add("clr", Cmd_Clear);
@@ -42,10 +41,7 @@ namespace Wah_Core {
 
 		private IReturn Cmd_WahHuh(ICore wah, IList<string> args, IDictionary<string, string> flags) {
 			wah.Putln("Wah?", Color.Yellow);
-			string w = wah.Api.Call("wah!").AsString();
-			wah.Putln(w);
-			wah.Api.Execute("wah!");
-			return new StringReturn(w);
+			return wah.Api.Call("wah!");
 		}
 
 		private IReturn Cmd_Cmdlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
@@ -63,18 +59,12 @@ namespace Wah_Core {
 
 		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
 			wah.Putln("Showing commands for module " + mod.Name, Color.Aqua);
-			foreach (string cmd in mod.Commands.Select(pair => pair.Key)) {
-				wah.Putln(cmd, Color.Yellow);
-			}
-			IList<string> cmds = mod.Commands.Select(pair => pair.Key).ToList();
-			IList<IReturn> rets = new List<IReturn>();
-			foreach (string cmd in cmds) {
-				rets.Add(new StringReturn(cmd));
-			}
-			return new ListReturn(rets);
+			IList<IReturn> cmds = mod.Commands.Select(pair => new StringReturn(pair.Key) as IReturn).ToList();
+			return new ListReturn(cmds);
 		}
 
 		private IReturn Cmd_Modlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+			IList<IReturn> rets = new List<IReturn>();
 			if (args.Count == 0) {
 				//show loaded and unloaded modules
 				if (flags.ContainsKey("-a")) {
@@ -85,7 +75,7 @@ namespace Wah_Core {
 				}
 				//show unloaded modules
 				if (flags.ContainsKey("-u")) {
-					wah.Putln("Unloaded modules: ", Color.Chartreuse);
+					rets.Add(new StringReturn("Unloaded modules: ", Color.Chartreuse));
 					//call: modlist -u
 					//for each found assembly
 					foreach (Assembly a in this.wah.ReDisk.LoadAllAssemblies()) {
@@ -94,7 +84,7 @@ namespace Wah_Core {
 							AModule newModule = (AModule)Activator.CreateInstance(t);
 							//only print unloaded modules
 							if (!ModuleLoaded(newModule.Name)) {
-								wah.Putln(newModule.Name, Color.LightGray);
+								rets.Add(new StringReturn(newModule.Name, Color.LightGray));
 							}
 						}
 					}
@@ -102,23 +92,16 @@ namespace Wah_Core {
 				if (flags.Count == 0 || flags.ContainsKey("-l")) {
 					//show loaded modules
 					//call: modlist OR modlist -l
-					wah.Putln("Loaded modules: ", Color.Gold);
+					rets.Add(new StringReturn("Loaded modules: ", Color.Gold));
 					foreach (AModule m in modules) {
-						wah.Putln(m.Name, Color.Yellow);
+						rets.Add(new StringReturn(m.Name));
 					}
 				}
 			}
 			else {
 				throw new IllformedInputException("Wrong number of arguments");
 			}
-			return new NoReturn();
-		}
-
-		private IReturn Cmd_Call(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			IReturn call = wah.Api.Call(string.Join(" ", args));
-			wah.Putln("Call Results:", Color.Cyan);
-			wah.Putln(call.AsString());
-			return call;
+			return new ListReturn(rets);
 		}
 
 		private IReturn Cmd_Help(ICore wah, IList<string> args, IDictionary<string, string> flags) {

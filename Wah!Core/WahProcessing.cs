@@ -14,6 +14,7 @@ namespace Wah_Core {
 		private const string SYSTEM_MODULE_VERSION = "Alpha nya 0";
 		private const string MACRO_ID = ";;";
 		private Program wah;
+		private OutputVisitor outVisit;
 		private bool isDone;
 		private object objLock;
 		private string primedCmd;
@@ -29,6 +30,7 @@ namespace Wah_Core {
 			workerThread = new Thread(RunCommandLoop);
 			modules = new List<AModule>();
 			macros = new Dictionary<string, string>();
+			outVisit = new OutputVisitor(wah);
 		}
 
 		public void InitializeModules() {
@@ -107,33 +109,11 @@ namespace Wah_Core {
 		private IReturn Call(AModule mod, string cmd, string args) {
 			try {
 				//call the function in the context of the given module
-				IReturn callResult = mod.Call(wah, cmd, args);
-				//return the call
-				return callResult;
+				return mod.Handle(wah, cmd, args);
 			}
 			catch (AWahException waex) {
 				//throw back up the call chain
 				throw new CallFailedException("Error in call to module: " + mod.Name + " with call to " + MashCommand(cmd, args), waex);
-			}
-			catch (Exception ex) {
-				//throw back up the call chain
-				throw new UnhandledException("Unhandled Exception thrown in: " + mod.Name
-					+ " with call to " + MashCommand(cmd, args) + " 大変です", ex);
-			}
-		}
-
-		/// <summary>
-		/// Executes the given command in the given module with the given arguments
-		/// </summary>
-		private void Execute(AModule mod, string cmd, string args) {
-			try {
-				//execute the command in the module
-				mod.Execute(wah, cmd, args);
-			}
-			catch (AWahException waex) {
-				//throw back up the call chain
-				throw new CallFailedException("Error in executing module: " + mod.Name
-					+ " with call to " + MashCommand(cmd, args), waex);
 			}
 			catch (Exception ex) {
 				//throw back up the call chain
@@ -149,7 +129,8 @@ namespace Wah_Core {
 				//expand the macros on the line
 				primedCmd = ExpandMacros(primedCmd);
 				wah.Putln("> " + primedCmd);
-				Execute(primedCmd);
+				//call and output to the console
+				Call(primedCmd).Accept(outVisit);
 			}
 			//top level exception handling
 			catch (AWahException waex) {
@@ -259,24 +240,7 @@ namespace Wah_Core {
 		/// Executes the command specified by the given line
 		/// </summary>
 		public void Execute(string line) {
-			//the first part should be a module or system command
-			string firstString = ParseFirst(line);
-			//module name
-			if (ModuleLoaded(firstString)) {
-				//find the module with that name
-				AModule module = FindModule(firstString);
-				// the rest of the line should be non-empty
-				string notModule = ParseRest(line, false);
-				//find the command name
-				string cmdName = ParseFirst(notModule);
-				//execute the command in the module with the possibly empty arguments
-				Execute(module, cmdName, ParseRest(notModule, true));
-			}
-			//system command
-			else {
-				//execute on this module the command with the possibly empty arguments
-				Execute(this, firstString, ParseRest(line, true));
-			}
+			Call(line);
 		}
 
 		/// <summary>

@@ -30,8 +30,7 @@ namespace Wah_Commands {
 		***  Commands
 		*************************************************/
 		private IReturn Cmd_Namae(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			wah.Putln("FUKO MODULE DESU");
-			return new StringReturn("Fuko desu yo~!");
+			return new StringReturn("Fuko desu yo~!", System.Drawing.Color.Chartreuse);
 		}
 
 		private IReturn Cmd_HitodeKangaeru(ICore wah, IList<string> args, IDictionary<string, string> flags) {
