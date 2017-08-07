@@ -53,7 +53,7 @@ namespace Wah_Interface {
 	public interface IApi {
 		//allow access
 		bool ModuleLoaded(string module);
-		IReturn Call(string line);
+		IData Call(string line);
 		void Execute(string line);
 		string AwaitRead();
 	}

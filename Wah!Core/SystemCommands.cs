@@ -23,6 +23,7 @@ namespace Wah_Core {
 			cmds.Add("shutdown", Cmd_Shutdown);
 			cmds.Add("clr", Cmd_Clear);
 			cmds.Add("macro", Cmd_Macro);
+			cmds.Add("echo", Cmd_Echo);
 
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
@@ -35,21 +36,21 @@ namespace Wah_Core {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Wah(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			return new StringReturn("Wah!");
+		private IData Cmd_Wah(ICore wah, CommandBundle bun) {
+			return new StringData("Wah!");
 		}
 
-		private IReturn Cmd_WahHuh(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_WahHuh(ICore wah, CommandBundle bun) {
 			wah.Putln("Wah?", Color.Yellow);
 			return wah.Api.Call("wah!");
 		}
 
-		private IReturn Cmd_Cmdlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			if (args.Count == 0) {
+		private IData Cmd_Cmdlist(ICore wah, CommandBundle bun) {
+			if (bun.Arguments.Count == 0) {
 				return Cmdlist_PrintModule(wah, this);
 			}
-			else if (args.Count == 1) {
-				return Cmdlist_PrintModule(wah, FindModule(args[0]));
+			else if (bun.Arguments.Count == 1) {
+				return Cmdlist_PrintModule(wah, FindModule(bun.Arguments[0].AsString()));
 			}
 			else {
 				throw new IllformedInputException("Wrong number of arguments");
@@ -57,25 +58,25 @@ namespace Wah_Core {
 
 		}
 
-		private ListReturn Cmdlist_PrintModule(ICore wah, AModule mod) {
+		private ListData Cmdlist_PrintModule(ICore wah, AModule mod) {
 			wah.Putln("Showing commands for module " + mod.Name, Color.Aqua);
-			IList<IReturn> cmds = mod.Commands.Select(pair => new StringReturn(pair.Key) as IReturn).ToList();
-			return new ListReturn(cmds);
+			IList<IData> cmds = mod.Commands.Select(pair => new StringData(pair.Key) as IData).ToList();
+			return new ListData(cmds);
 		}
 
-		private IReturn Cmd_Modlist(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			IList<IReturn> rets = new List<IReturn>();
-			if (args.Count == 0) {
+		private IData Cmd_Modlist(ICore wah, CommandBundle bun) {
+			IList<IData> rets = new List<IData>();
+			if (bun.ArgCount(0)) {
 				//show loaded and unloaded modules
-				if (flags.ContainsKey("-a")) {
-					if (!flags.ContainsKey("-u"))
-						flags.Add("-u", "");
-					if (!flags.ContainsKey("-l"))
-						flags.Add("-l", "");
+				if (bun.HasFlag("-a")) {
+					if (!bun.HasFlag("-u"))
+						bun.AddFlag("-u", "");
+					if (!bun.HasFlag("-l"))
+						bun.AddFlag("-l", "");
 				}
 				//show unloaded modules
-				if (flags.ContainsKey("-u")) {
-					rets.Add(new StringReturn("Unloaded modules: ", Color.Chartreuse));
+				if (bun.HasFlag("-u")) {
+					rets.Add(new StringData("Unloaded modules: ", Color.Chartreuse));
 					//call: modlist -u
 					//for each found assembly
 					foreach (Assembly a in this.wah.ReDisk.LoadAllAssemblies()) {
@@ -84,63 +85,64 @@ namespace Wah_Core {
 							AModule newModule = (AModule)Activator.CreateInstance(t);
 							//only print unloaded modules
 							if (!ModuleLoaded(newModule.Name)) {
-								rets.Add(new StringReturn(newModule.Name, Color.LightGray));
+								rets.Add(new StringData(newModule.Name, Color.LightGray));
 							}
 						}
 					}
 				}
-				if (flags.Count == 0 || flags.ContainsKey("-l")) {
+				if (bun.FlagCount(0) || bun.HasFlag("-l")) {
 					//show loaded modules
 					//call: modlist OR modlist -l
-					rets.Add(new StringReturn("Loaded modules: ", Color.Gold));
+					rets.Add(new StringData("Loaded modules: ", Color.Gold));
 					foreach (AModule m in modules) {
-						rets.Add(new StringReturn(m.Name));
+						rets.Add(new StringData(m.Name));
 					}
 				}
 			}
 			else {
 				throw new IllformedInputException("Wrong number of arguments");
 			}
-			return new ListReturn(rets);
+			return new ListData(rets);
 		}
 
-		private IReturn Cmd_Help(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			if (args.Count == 0) {
+		private IData Cmd_Help(ICore wah, CommandBundle bun) {
+			IList<string> strArgs = bun.StringArgs();
+			if (bun.ArgCount(0)) {
 				//call: help
 				Help_Module(this);
 			}
-			else if (args.Count == 1) {
-				//call: help fuko
-				if (ModuleLoaded(args[0])) {
-					Help_Module(FindModule(args[0]));
-				}
-				//call: help cmdlist
-				else if (Commands.ContainsKey(args[0])) {
-					Help_Command(this, args[0]);
-				}
-				else {
-					throw new NoSuchItemException("no module/system command named " + args[0]);
-				}
-			}
-			else if (args.Count == 2) {
-				//call: help fuko hitode
-				if (ModuleLoaded(args[0])) {
-					AModule mod = FindModule(args[0]);
-					if (mod.Commands.ContainsKey(args[1])) {
-						Help_Command(mod, args[1]);
+			else if (bun.ArgCount(1)) {
+					//call: help fuko
+					if (ModuleLoaded(strArgs[0])) {
+						Help_Module(FindModule(strArgs[0]));
+					}
+					//call: help cmdlist
+					else if (Commands.ContainsKey(strArgs[0])) {
+						Help_Command(this, strArgs[0]);
 					}
 					else {
-						throw new NoSuchItemException("no command named " + args[1]);
+						throw new NoSuchItemException("no module/system command named " + strArgs[0]);
+					}
+				}
+				else if (bun.ArgCount(2)) {
+					//call: help fuko hitode
+					if (ModuleLoaded(strArgs[0])) {
+						AModule mod = FindModule(strArgs[0]);
+						if (mod.Commands.ContainsKey(strArgs[1])) {
+							Help_Command(mod, strArgs[1]);
+						}
+						else {
+							throw new NoSuchItemException("no command named " + strArgs[1]);
+						}
+					}
+					else {
+						throw new NoSuchItemException("no module named " + strArgs[0]);
 					}
 				}
 				else {
-					throw new NoSuchItemException("no module named " + args[0]);
+					throw new IllformedInputException("wrong number of arguments");
 				}
-			}
-			else {
-				throw new IllformedInputException("wrong number of arguments");
-			}
-			return new NoReturn();
+			return new NoData();
 		}
 
 		private void Help_Module(AModule mod) {
@@ -155,63 +157,64 @@ namespace Wah_Core {
 			wah.ReDisk.LoadDisplayHelp(wah, mod, cmd);
 		}
 
-		private IReturn Cmd_About(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			if (args.Count == 0) {
+		private IData Cmd_About(ICore wah, CommandBundle bun) {
+			if (bun.ArgCount(0)) {
 
 			}
 			throw new NotImplementedException();
 		}
 
-		private IReturn Cmd_Close(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			if (args.Count == 0) {
+		private IData Cmd_Close(ICore wah, CommandBundle bun) {
+			if (bun.ArgCount(0)) {
 				wah.Display.HideWindow();
 			}
 			else {
 				throw new IllformedInputException("No arguments onegai");
 			}
-			return new NoReturn();
+			return new NoData();
 		}
 
-		private IReturn Cmd_Shutdown(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_Shutdown(ICore wah, CommandBundle bun) {
 			Environment.Exit(0);
-			return new NoReturn();
+			return new NoData();
 		}
 
-		private IReturn Cmd_Clear(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_Clear(ICore wah, CommandBundle bun) {
 			wah.Display.ClearWindow();
-			return new NoReturn();
+			return new NoData();
 		}
 
-		private IReturn Cmd_Macro(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			if (args.Count >= 1) {
-				if (args[0].Equals("add")) {
+		private IData Cmd_Macro(ICore wah, CommandBundle bun) {
+			IList<string> strArgs = bun.StringArgs();
+			if (bun.Arguments.Count >= 1) {
+				if (strArgs[0].Equals("add")) {
 					//call: marco add home my house
-					return Macro_Add(args);
+					return Macro_Add(strArgs);
 				}
-				else if (args[0].Equals("edit")) {
+				else if (strArgs[0].Equals("edit")) {
 					//call: marco edit home this is my home
-					return Macro_Edit(wah, args);
+					return Macro_Edit(wah, strArgs);
 
 				}
-				else if (args[0].Equals("delete")) {
+				else if (strArgs[0].Equals("delete")) {
 					//call: marco delete home
-					return Macro_Delete(args);
+					return Macro_Delete(strArgs);
 				}
-				else if (args[0].Equals("list")) {
+				else if (strArgs[0].Equals("list")) {
 					//call: macro list
-					if (args.Count == 1) {
+					if (bun.ArgCount(1)) {
 						wah.Putln("Registered Macros: ", Color.LightGreen);
 						foreach (string key in macros.Keys) {
 							wah.Putln(key + " -> " + macros[key]);
 						}
-						return new NoReturn();
+						return new NoData();
 					}
 					else {
 						throw new IllformedInputException("subcommand list takes no arguments, silly!");
 					}
 				}
 				else {
-					throw new IllformedInputException(args[0] + " is not a recognized subcommand of marco");
+					throw new IllformedInputException(strArgs[0] + " is not a recognized subcommand of marco");
 				}
 			}
 			else {
@@ -219,7 +222,7 @@ namespace Wah_Core {
 			}
 		}
 
-		private IReturn Macro_Add(IList<string> args) {
+		private IData Macro_Add(IList<string> args) {
 			//need add + from + to
 			if (args.Count >= 3) {
 				string from = args[1];
@@ -241,10 +244,10 @@ namespace Wah_Core {
 			else {
 				throw new IllformedInputException("add subcommand must take at least 3 arguments");
 			}
-			return new NoReturn();
+			return new NoData();
 		}
 
-		private IReturn Macro_Edit(ICore wah, IList<string> args) {
+		private IData Macro_Edit(ICore wah, IList<string> args) {
 			//need edit + from + to
 			if (args.Count >= 3) {
 				string from = args[1];
@@ -265,10 +268,10 @@ namespace Wah_Core {
 			else {
 				throw new IllformedInputException("edit subcommand must take at least 3 arguments");
 			}
-			return new NoReturn();
+			return new NoData();
 		}
 
-		private IReturn Macro_Delete(IList<string> args) {
+		private IData Macro_Delete(IList<string> args) {
 			//need delete + from
 			if (args.Count == 2) {
 				string from = args[1];
@@ -283,7 +286,12 @@ namespace Wah_Core {
 			else {
 				throw new IllformedInputException("delete subcommand must take 2 arguments");
 			}
-			return new NoReturn();
+			return new NoData();
+		}
+
+		private IData Cmd_Echo(ICore wah, CommandBundle bun) {
+			string echo = string.Join(" ", bun.StringArgs());
+			return new StringData(echo, Color.LightPink);
 		}
 
 		//private IReturn Cmd_Config(ICore wah, string[] args) {
@@ -302,20 +310,20 @@ namespace Wah_Core {
 		//	return new NoReturn();
 		//}
 
-		private IReturn Cmd_Chain1(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_Chain1(ICore wah, CommandBundle bun) {
 			int i = wah.Api.Call("chn2").AsInt();
 			wah.Putln("i: " + i);
-			return new NoReturn();
+			return new NoData();
 		}
 
-		private IReturn Cmd_Chain2(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_Chain2(ICore wah, CommandBundle bun) {
 			bool b = wah.Api.Call("chn3 true").AsBool();
-			return new IntReturn(b ? 5 : 6);
+			return new IntData(b ? 5 : 6);
 		}
 
-		private IReturn Cmd_Chain3(ICore wah, IList<string> args, IDictionary<string, string> flags) {
-			if (args.Count == 0) {
-				return new NoReturn();
+		private IData Cmd_Chain3(ICore wah, CommandBundle bun) {
+			if (bun.ArgCount(0)) {
+				return new NoData();
 			}
 			else {
 				throw new Exception("FATAL ERROR");

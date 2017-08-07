@@ -6,7 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Wah_Interface {
-	public interface IReturn {
+	/// <summary>
+	/// Models an abstract piece of data to be passed around in a program like native data types.
+	/// Supports some casting and visitors.
+	/// </summary>
+	public interface IData {
 		string AsString();
 		int AsInt();
 		bool AsBool();
@@ -14,14 +18,14 @@ namespace Wah_Interface {
 		R Accept<R>(IReturnVisitor<R> irv);
 	}
 	public interface IReturnVisitor<R> {
-		R VisitNo(NoReturn nr);
-		R VisitString(StringReturn sr);
-		R VisitInt(IntReturn ir);
-		R VisitBool(BoolReturn br);
-		R VisitList(ListReturn lr);
-		R VisitBitmap(BitmapReturn br);
+		R VisitNo(NoData nr);
+		R VisitString(StringData sr);
+		R VisitInt(IntData ir);
+		R VisitBool(BoolData br);
+		R VisitList(ListData lr);
+		R VisitBitmap(BitmapData br);
 	}
-	public class NoReturn : IReturn {
+	public class NoData : IData {
 
 		public bool AsBool() {
 			throw new NoReturnException();
@@ -41,14 +45,14 @@ namespace Wah_Interface {
 			return irv.VisitNo(this);
 		}
 	}
-	public class StringReturn : IReturn {
+	public class StringData : IData {
 		public string Value { get; private set; }
 		public Color Color { get; private set; }
-		public StringReturn(string value, Color color) {
+		public StringData(string value, Color color) {
 			Value = value;
 			Color = color;
 		}
-		public StringReturn(string value) : this(value, Color.Yellow) { }
+		public StringData(string value) : this(value, Color.Yellow) { }
 		public bool AsBool() {
 			bool b = false;
 			if (bool.TryParse(Value, out b)) {
@@ -79,9 +83,9 @@ namespace Wah_Interface {
 			return irv.VisitString(this);
 		}
 	}
-	public class IntReturn : IReturn {
+	public class IntData : IData {
 		public int Value { get; private set; }
-		public IntReturn(int value) {
+		public IntData(int value) {
 			Value = value;
 		}
 
@@ -103,9 +107,9 @@ namespace Wah_Interface {
 			return irv.VisitInt(this);
 		}
 	}
-	public class BoolReturn : IReturn {
+	public class BoolData : IData {
 		public bool Value { get; private set; }
-		public BoolReturn(bool value) {
+		public BoolData(bool value) {
 			Value = value;
 		}
 
@@ -128,9 +132,9 @@ namespace Wah_Interface {
 		}
 	}
 
-	public class ListReturn : IReturn {
-		public IList<IReturn> Value { get; private set; }
-		public ListReturn(IList<IReturn> value) {
+	public class ListData : IData {
+		public IList<IData> Value { get; private set; }
+		public ListData(IList<IData> value) {
 			Value = value;
 		}
 
@@ -152,9 +156,9 @@ namespace Wah_Interface {
 			return irv.VisitList(this);
 		}
 	}
-	public class BitmapReturn : IReturn {
+	public class BitmapData : IData {
 		public Bitmap Value { get; private set; }
-		public BitmapReturn(Bitmap value) {
+		public BitmapData(Bitmap value) {
 			Value = value;
 		}
 		public Bitmap AsBitmap() {
@@ -182,34 +186,34 @@ namespace Wah_Interface {
 		public OutputVisitor(ICore wah) {
 			this.wah = wah;
 		}
-		public object VisitBitmap(BitmapReturn br) {
+		public object VisitBitmap(BitmapData br) {
 			wah.Putln("Bitmap", Color.Aquamarine);
 			wah.Display.ShowExtra(new SimpleImage(br.AsBitmap()));
 			return null;
 		}
 
-		public object VisitBool(BoolReturn br) {
+		public object VisitBool(BoolData br) {
 			wah.Putln(br.AsString(), Color.Honeydew);
 			return null;
 		}
 
-		public object VisitInt(IntReturn ir) {
+		public object VisitInt(IntData ir) {
 			wah.Putln(ir.AsString(), Color.OrangeRed);
 			return null;
 		}
 
-		public object VisitList(ListReturn lr) {
-			foreach (IReturn ir in lr.Value) {
+		public object VisitList(ListData lr) {
+			foreach (IData ir in lr.Value) {
 				ir.Accept(this);
 			}
 			return null;
 		}
 
-		public object VisitNo(NoReturn nr) {
+		public object VisitNo(NoData nr) {
 			return null;
 		}
 
-		public object VisitString(StringReturn sr) {
+		public object VisitString(StringData sr) {
 			wah.Putln(sr.Value, sr.Color);
 			return null;
 		}

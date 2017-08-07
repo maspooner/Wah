@@ -9,7 +9,7 @@ using Wah_Interface;
 
 namespace Wah_Core {
 	internal class Program : ICore, IReCore {
-		private const int TRIGGER_KEY = (int)Keys.C;
+		private const int TRIGGER_KEY = (int)Keys.OemPeriod;
 		
 		private WahProcessing wpro;
 		private WahDisk wdisk;

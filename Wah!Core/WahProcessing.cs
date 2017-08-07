@@ -13,6 +13,7 @@ namespace Wah_Core {
 		private const string SYSTEM_MODULE_NAME = "SYSTEM";
 		private const string SYSTEM_MODULE_VERSION = "Alpha nya 0";
 		private const string MACRO_ID = ";;";
+
 		private Program wah;
 		private OutputVisitor outVisit;
 		private bool isDone;
@@ -21,6 +22,7 @@ namespace Wah_Core {
 		private Thread workerThread;
 		private IList<AModule> modules;
 		private IDictionary<string, string> macros;
+		private IData previousReturn;
 
 		public WahProcessing(Program wah) : base(SYSTEM_MODULE_NAME, SYSTEM_MODULE_VERSION) {
 			isDone = false;
@@ -31,6 +33,7 @@ namespace Wah_Core {
 			modules = new List<AModule>();
 			macros = new Dictionary<string, string>();
 			outVisit = new OutputVisitor(wah);
+			previousReturn = null;
 		}
 
 		public void InitializeModules() {
@@ -106,10 +109,12 @@ namespace Wah_Core {
 		/// Calls the specified module with the given command and arguments
 		/// </summary>
 		/// <returns>The return value of the call</returns>
-		private IReturn Call(AModule mod, string cmd, string args) {
+		private IData Call(AModule mod, string cmd, string args) {
 			try {
 				//call the function in the context of the given module
-				return mod.Handle(wah, cmd, args);
+				previousReturn = mod.Handle(wah, cmd, args, previousReturn);
+				//TODO test
+				return previousReturn;
 			}
 			catch (AWahException waex) {
 				//throw back up the call chain
@@ -216,7 +221,7 @@ namespace Wah_Core {
 		/// Calls the command specified by the line
 		/// Does not look at macros
 		/// </summary>
-		public IReturn Call(string line) {
+		public IData Call(string line) {
 			//first should be either a module or system command
 			string firstString = ParseFirst(line);
 			//module

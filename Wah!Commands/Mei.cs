@@ -30,12 +30,12 @@ namespace Wah_Commands {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IReturn Cmd_Scale(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_Scale(ICore wah, CommandBundle bun) {
 			//Usage: mei scale -i=[img-name|dir-name] -o=[out-file|out-dir] -h=300 -w=200
 			//TODO ImageReturn, display automatically image in picture box
-			if(args.Count == 0) {
-				if (flags.ContainsKey("-i")) {
-					string inPath = flags["-i"];
+			if(bun.ArgCount(0)) {
+				if (bun.HasFlag("-i")) {
+					string inPath = bun.Flags["-i"];
 					bool inFile = File.Exists(inPath);
 					bool inDir = Directory.Exists(inPath);
 					//does not exist
@@ -46,19 +46,19 @@ namespace Wah_Commands {
 					else {
 						try {
 							if (inFile) {
-								string outPath = flags.ContainsKey("-o") ? flags["-o"] :
+								string outPath = bun.HasFlag("-o") ? bun.Flags["-o"] :
 									Path.Combine(Path.GetDirectoryName(inPath),
 									Path.GetFileNameWithoutExtension(inPath) + "_scaled.png");
 								return Scale_ScaleOne(outPath);
 							}
 							else {
-								string outPath = flags.ContainsKey("-o") ? flags["-o"] :
+								string outPath = bun.HasFlag("-o") ? bun.Flags["-o"] :
 									Path.Combine(inPath, "scaled");
-								IList<IReturn> bits = new List<IReturn>();
+								IList<IData> bits = new List<IData>();
 								foreach(string f in Directory.EnumerateFiles(outPath)) {
 									bits.Add(Scale_ScaleOne(f));
 								}
-								return new ListReturn(bits);
+								return new ListData(bits);
 							}
 						}
 						catch {
@@ -74,13 +74,13 @@ namespace Wah_Commands {
 				throw new IllformedInputException("Too many arguments");
 			}
 		}
-		private IReturn Scale_ScaleOne(string filePath) {
-			return new NoReturn();
+		private IData Scale_ScaleOne(string filePath) {
+			return new NoData();
 		}
 
-		private IReturn Cmd_Chop(ICore wah, IList<string> args, IDictionary<string, string> flags) {
+		private IData Cmd_Chop(ICore wah, CommandBundle bun) {
 			//Usage: mei chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200
-			return new NoReturn();
+			return new NoData();
 		}
 	}
 }
