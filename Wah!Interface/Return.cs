@@ -15,9 +15,9 @@ namespace Wah_Interface {
 		int AsInt();
 		bool AsBool();
 		Bitmap AsBitmap();
-		R Accept<R>(IReturnVisitor<R> irv);
+		R Accept<R>(IDataVisitor<R> irv);
 	}
-	public interface IReturnVisitor<R> {
+	public interface IDataVisitor<R> {
 		R VisitNo(NoData nr);
 		R VisitString(StringData sr);
 		R VisitInt(IntData ir);
@@ -41,7 +41,7 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new NoReturnException();
 		}
-		public R Accept<R>(IReturnVisitor<R> irv) {
+		public R Accept<R>(IDataVisitor<R> irv) {
 			return irv.VisitNo(this);
 		}
 	}
@@ -79,7 +79,7 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
 		}
-		public R Accept<R>(IReturnVisitor<R> irv) {
+		public R Accept<R>(IDataVisitor<R> irv) {
 			return irv.VisitString(this);
 		}
 	}
@@ -103,7 +103,7 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
 		}
-		public R Accept<R>(IReturnVisitor<R> irv) {
+		public R Accept<R>(IDataVisitor<R> irv) {
 			return irv.VisitInt(this);
 		}
 	}
@@ -127,7 +127,7 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data " + Value + " cannot be cast to a bitmap");
 		}
-		public R Accept<R>(IReturnVisitor<R> irv) {
+		public R Accept<R>(IDataVisitor<R> irv) {
 			return irv.VisitBool(this);
 		}
 	}
@@ -152,7 +152,7 @@ namespace Wah_Interface {
 		public Bitmap AsBitmap() {
 			throw new IllformedInputException("data of ListReturn cannot be cast to a bitmap");
 		}
-		public R Accept<R>(IReturnVisitor<R> irv) {
+		public R Accept<R>(IDataVisitor<R> irv) {
 			return irv.VisitList(this);
 		}
 	}
@@ -176,12 +176,12 @@ namespace Wah_Interface {
 		public string AsString() {
 			return Value.ToString();
 		}
-		public R Accept<R>(IReturnVisitor<R> irv) {
+		public R Accept<R>(IDataVisitor<R> irv) {
 			return irv.VisitBitmap(this);
 		}
 	}
 
-	public class OutputVisitor : IReturnVisitor<object> {
+	public class OutputVisitor : IDataVisitor<object> {
 		private ICore wah;
 		public OutputVisitor(ICore wah) {
 			this.wah = wah;

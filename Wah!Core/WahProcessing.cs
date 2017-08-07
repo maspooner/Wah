@@ -40,6 +40,7 @@ namespace Wah_Core {
 			//include the system settings
 			wah.ReSettings.IncludeSettings(wah.Disk, this);
 			LoadModule("Wah!Commands", "Fuko");
+			//LoadModule("Wah!Commands", "Mei");
 		}
 		public void InitializeMacros() {
 			macros.Add("home", "/f/");

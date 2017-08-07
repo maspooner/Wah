@@ -20,6 +20,7 @@ namespace Wah_Commands {
 
 		public override Dictionary<string, CommandDelegate> InitializeCommands() {
 			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
+			cmds.Add("mkfile", Cmd_Mkfile);
 			return cmds;
 		}
 
@@ -81,6 +82,65 @@ namespace Wah_Commands {
 		private IData Cmd_Chop(ICore wah, CommandBundle bun) {
 			//Usage: mei chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200
 			return new NoData();
+		}
+
+		private IData Cmd_Mkfile(ICore wah, CommandBundle bun) {
+			//format: mkfile <name> <what>
+			if (bun.ArgCount(0) || bun.Arguments.Count > 2) {
+				throw new IllformedInputException("mkfile requires at least the file name, and at most the file name and content to write");
+			}
+			else {
+				//force overwrite or file doesn't exist
+				if(bun.HasFlag("-f") || !File.Exists(bun.ArgStringOf(0))) {
+					//not blank file
+					if (!bun.ArgCount(1)) {
+						bun.Arguments[1].Accept(new MakeFileVisitor(bun.ArgStringOf(0)));
+					}
+				}
+				else {
+					throw new IOLoadException("File already exists. To force override, use the -f flag");
+				}
+			}
+			return new NoData();
+		}
+	}
+
+	internal class MakeFileVisitor : IDataVisitor<object> {
+		private readonly string fileName;
+		internal MakeFileVisitor(string fileName) {
+			this.fileName = fileName;
+		}
+		public object VisitBitmap(BitmapData br) {
+			br.Value.Save(fileName);
+			return null;
+		}
+
+		public object VisitBool(BoolData br) {
+			VisitString(new StringData(br.AsString()));
+			return null;
+		}
+
+		public object VisitInt(IntData ir) {
+			VisitString(new StringData(ir.AsString()));
+			return null;
+		}
+
+		public object VisitList(ListData lr) {
+			throw new NotImplementedException();
+		}
+
+		public object VisitNo(NoData nr) {
+			return null;
+		}
+
+		public object VisitString(StringData sr) {
+			using(FileStream fs = File.Create(fileName)) {
+				using(StreamWriter sw = new StreamWriter(fs)) {
+					sw.Write(sr.Value);
+					sw.Flush();
+				}
+			}
+			return null;
 		}
 	}
 }
