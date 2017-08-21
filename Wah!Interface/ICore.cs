@@ -47,6 +47,7 @@ namespace Wah_Interface {
 		void Execute();
 
 	}
+
 	/// <summary>
 	/// Represents an interface with the command processor that gives modules access to its features
 	/// </summary>
@@ -60,6 +61,7 @@ namespace Wah_Interface {
 	public interface IDisplay {
 		void ShowExtra(IVisual extra);
 		void ShowPersona(IVisual persona);
+		void ClearVisuals();
 		void Print(string txt, Color col);
 		void HideWindow();
 		void ClearWindow();

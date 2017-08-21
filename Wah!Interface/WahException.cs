@@ -59,6 +59,14 @@ namespace Wah_Interface {
 
 		}
 	}
+	public class WrongNumberArgumentsException : IllformedInputException {
+		public WrongNumberArgumentsException() : this("Wrong number of arguments") {
+
+		}
+		public WrongNumberArgumentsException(string message) : base(message) {
+
+		}
+	}
 	public class IOLoadException : AWahException {
 		public IOLoadException(string message) : base(message) {
 

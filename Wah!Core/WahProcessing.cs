@@ -95,6 +95,7 @@ namespace Wah_Core {
 					Monitor.Wait(objLock);
 				}
 				if (!isDone) {
+					wah.Display.ClearVisuals();
 					Execute();
 				}
 			}
@@ -127,6 +128,7 @@ namespace Wah_Core {
 					+ " with call to " + MashCommand(cmd, args) + " 大変です", ex);
 			}
 		}
+
 		/// <summary>
 		/// Executes the primed command, expanding macros beforehand
 		/// </summary>
@@ -153,7 +155,8 @@ namespace Wah_Core {
 		}
 
 		public void InterruptJob() {
-			wah.PutErr("死んちゃったｗ");
+			wah.PutErr("死んじゃったｗ");
+			wah.Display.ClearVisuals();
 			workerThread.Abort();
 			workerThread = new Thread(RunCommandLoop);
 			workerThread.Start();
@@ -161,7 +164,7 @@ namespace Wah_Core {
 
 		public AModule FindModule(string name) {
 			if (ModuleLoaded(name)) {
-				return modules.First(a => a.Name.Equals(name));
+				return modules.First(a => a.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
 			}
 			else {
 				throw new NoSuchItemException("no module named " + name);
@@ -216,7 +219,7 @@ namespace Wah_Core {
 		/// Is the module with the given name loaded?
 		/// </summary>
 		public bool ModuleLoaded(string module) {
-			return modules.Any(a => a.Name.Equals(module));
+			return modules.Any(a => a.Name.Equals(module, StringComparison.InvariantCultureIgnoreCase));
 		}
 		/// <summary>
 		/// Calls the command specified by the line

@@ -12,8 +12,7 @@ namespace Wah_Core {
 		////////////////////////////////////////////////////////////////////////////////
 		////  AModule methods
 		////////////////////////////////////////////////////////////////////////////////
-		public override Dictionary<string, CommandDelegate> InitializeCommands() {
-			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
+		public override void InitializeCommands(Dictionary<string, CommandDelegate> cmds) {
 			cmds.Add("wah!", Cmd_Wah);
 			cmds.Add("wah?", Cmd_WahHuh);
 			cmds.Add("cmdlist", Cmd_Cmdlist);
@@ -28,7 +27,6 @@ namespace Wah_Core {
 			cmds.Add("chn1", Cmd_Chain1);
 			cmds.Add("chn2", Cmd_Chain2);
 			cmds.Add("chn3", Cmd_Chain3);
-			return cmds;
 		}
 		public override void SetDefaultSettings(IReSettings sets) {
 			sets.RegisterSetting(this, "web.browser", "firefox", SettingType.STRING);
@@ -37,25 +35,22 @@ namespace Wah_Core {
 		***  Commands
 		*************************************************/
 		private IData Cmd_Wah(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			return new StringData("Wah!");
 		}
 
 		private IData Cmd_WahHuh(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			wah.Putln("Wah?", Color.Yellow);
 			return wah.Api.Call("wah!");
 		}
 
 		private IData Cmd_Cmdlist(ICore wah, CommandBundle bun) {
-			if (bun.Arguments.Count == 0) {
-				return Cmdlist_PrintModule(wah, this);
+			switch (bun.Arguments.Count) {
+				case 0: return Cmdlist_PrintModule(wah, this);
+				case 1: return Cmdlist_PrintModule(wah, FindModule(bun.Arguments[0].AsString()));
+				default: throw new WrongNumberArgumentsException();
 			}
-			else if (bun.Arguments.Count == 1) {
-				return Cmdlist_PrintModule(wah, FindModule(bun.Arguments[0].AsString()));
-			}
-			else {
-				throw new IllformedInputException("Wrong number of arguments");
-			}
-
 		}
 
 		private ListData Cmdlist_PrintModule(ICore wah, AModule mod) {
@@ -66,41 +61,37 @@ namespace Wah_Core {
 
 		private IData Cmd_Modlist(ICore wah, CommandBundle bun) {
 			IList<IData> rets = new List<IData>();
-			if (bun.ArgCount(0)) {
-				//show loaded and unloaded modules
-				if (bun.HasFlag("-a")) {
-					if (!bun.HasFlag("-u"))
-						bun.AddFlag("-u", "");
-					if (!bun.HasFlag("-l"))
-						bun.AddFlag("-l", "");
-				}
-				//show unloaded modules
-				if (bun.HasFlag("-u")) {
-					rets.Add(new StringData("Unloaded modules: ", Color.Chartreuse));
-					//call: modlist -u
-					//for each found assembly
-					foreach (Assembly a in this.wah.ReDisk.LoadAllAssemblies()) {
-						//for each AModule type in the assembly
-						foreach (Type t in a.GetTypes().Where(q => q.BaseType == typeof(AModule))) {
-							AModule newModule = (AModule)Activator.CreateInstance(t);
-							//only print unloaded modules
-							if (!ModuleLoaded(newModule.Name)) {
-								rets.Add(new StringData(newModule.Name, Color.LightGray));
-							}
+			bun.AssertNoArgs();
+			//show loaded and unloaded modules
+			if (bun.HasFlag("-a")) {
+				if (!bun.HasFlag("-u"))
+					bun.AddFlag("-u", "");
+				if (!bun.HasFlag("-l"))
+					bun.AddFlag("-l", "");
+			}
+			//show unloaded modules
+			if (bun.HasFlag("-u")) {
+				rets.Add(new StringData("Unloaded modules: ", Color.Chartreuse));
+				//call: modlist -u
+				//for each found assembly
+				foreach (Assembly a in this.wah.ReDisk.LoadAllAssemblies()) {
+					//for each AModule type in the assembly
+					foreach (Type t in a.GetTypes().Where(q => q.BaseType == typeof(AModule))) {
+						AModule newModule = (AModule)Activator.CreateInstance(t);
+						//only print unloaded modules
+						if (!ModuleLoaded(newModule.Name)) {
+							rets.Add(new StringData(newModule.Name, Color.LightGray));
 						}
 					}
 				}
-				if (bun.FlagCount(0) || bun.HasFlag("-l")) {
-					//show loaded modules
-					//call: modlist OR modlist -l
-					rets.Add(new StringData("Loaded modules: ", Color.Gold));
-					foreach (AModule m in modules) {
-						rets.Add(new StringData(m.Name));
-					}
-				}
 			}
-			else {
-				throw new IllformedInputException("Wrong number of arguments");
+			if (bun.FlagCount(0) || bun.HasFlag("-l")) {
+				//show loaded modules
+				//call: modlist OR modlist -l
+				rets.Add(new StringData("Loaded modules: ", Color.Gold));
+				foreach (AModule m in modules) {
+					rets.Add(new StringData(m.Name));
+				}
 			}
 			return new ListData(rets);
 		}
@@ -112,36 +103,36 @@ namespace Wah_Core {
 				Help_Module(this);
 			}
 			else if (bun.ArgCount(1)) {
-					//call: help fuko
-					if (ModuleLoaded(strArgs[0])) {
-						Help_Module(FindModule(strArgs[0]));
-					}
-					//call: help cmdlist
-					else if (Commands.ContainsKey(strArgs[0])) {
-						Help_Command(this, strArgs[0]);
-					}
-					else {
-						throw new NoSuchItemException("no module/system command named " + strArgs[0]);
-					}
+				//call: help fuko
+				if (ModuleLoaded(strArgs[0])) {
+					Help_Module(FindModule(strArgs[0]));
 				}
-				else if (bun.ArgCount(2)) {
-					//call: help fuko hitode
-					if (ModuleLoaded(strArgs[0])) {
-						AModule mod = FindModule(strArgs[0]);
-						if (mod.Commands.ContainsKey(strArgs[1])) {
-							Help_Command(mod, strArgs[1]);
-						}
-						else {
-							throw new NoSuchItemException("no command named " + strArgs[1]);
-						}
+				//call: help cmdlist
+				else if (Commands.ContainsKey(strArgs[0])) {
+					Help_Command(this, strArgs[0]);
+				}
+				else {
+					throw new NoSuchItemException("no module/system command named " + strArgs[0]);
+				}
+			}
+			else if (bun.ArgCount(2)) {
+				//call: help fuko hitode
+				if (ModuleLoaded(strArgs[0])) {
+					AModule mod = FindModule(strArgs[0]);
+					if (mod.Commands.ContainsKey(strArgs[1])) {
+						Help_Command(mod, strArgs[1]);
 					}
 					else {
-						throw new NoSuchItemException("no module named " + strArgs[0]);
+						throw new NoSuchItemException("no command named " + strArgs[1]);
 					}
 				}
 				else {
-					throw new IllformedInputException("wrong number of arguments");
+					throw new NoSuchItemException("no module named " + strArgs[0]);
 				}
+			}
+			else {
+				throw new WrongNumberArgumentsException();
+			}
 			return new NoData();
 		}
 
@@ -158,28 +149,24 @@ namespace Wah_Core {
 		}
 
 		private IData Cmd_About(ICore wah, CommandBundle bun) {
-			if (bun.ArgCount(0)) {
-
-			}
+			bun.AssertNoArgs();
 			throw new NotImplementedException();
 		}
 
 		private IData Cmd_Close(ICore wah, CommandBundle bun) {
-			if (bun.ArgCount(0)) {
-				wah.Display.HideWindow();
-			}
-			else {
-				throw new IllformedInputException("No arguments onegai");
-			}
+			bun.AssertNoArgs();
+			wah.Display.HideWindow();
 			return new NoData();
 		}
 
 		private IData Cmd_Shutdown(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			Environment.Exit(0);
 			return new NoData();
 		}
 
 		private IData Cmd_Clear(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			wah.Display.ClearWindow();
 			return new NoData();
 		}

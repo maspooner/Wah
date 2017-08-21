@@ -18,10 +18,8 @@ namespace Wah_Commands {
 
 		}
 
-		public override Dictionary<string, CommandDelegate> InitializeCommands() {
-			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
+		public override void InitializeCommands(Dictionary<string, CommandDelegate> cmds) {
 			cmds.Add("mkfile", Cmd_Mkfile);
-			return cmds;
 		}
 
 		public override void SetDefaultSettings(IReSettings sets) {
@@ -34,7 +32,7 @@ namespace Wah_Commands {
 		private IData Cmd_Scale(ICore wah, CommandBundle bun) {
 			//Usage: mei scale -i=[img-name|dir-name] -o=[out-file|out-dir] -h=300 -w=200
 			//TODO ImageReturn, display automatically image in picture box
-			if(bun.ArgCount(0)) {
+			bun.AssertNoArgs();
 				if (bun.HasFlag("-i")) {
 					string inPath = bun.Flags["-i"];
 					bool inFile = File.Exists(inPath);
@@ -70,11 +68,8 @@ namespace Wah_Commands {
 				else {
 					throw new IllformedInputException("scale must take a flag -i for the input path");
 				}
-			}
-			else {
-				throw new IllformedInputException("Too many arguments");
-			}
 		}
+
 		private IData Scale_ScaleOne(string filePath) {
 			return new NoData();
 		}

@@ -42,8 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AModule.cs" />
+    <Compile Include="CommandBundle.cs" />
     <Compile Include="Visual.cs" />
-    <Compile Include="Return.cs" />
+    <Compile Include="IData.cs" />
     <Compile Include="ICore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WahException.cs" />

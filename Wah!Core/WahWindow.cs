@@ -195,6 +195,14 @@ namespace Wah_Core {
 			}));
 		}
 
+		public void ClearVisuals() {
+			CallOnUI(new Action(delegate {
+				EmptyImage ei = new EmptyImage(new Point(0, 0));
+				topPic.UpdateVisual(ei);
+				botPic.UpdateVisual(ei);
+			}));
+		}
+
 		public void HideWindow() {
 			CallOnUI(new Action(Hide));
 		}

@@ -13,12 +13,10 @@ namespace Wah_Commands {
 
 		}
 
-		public override Dictionary<string, CommandDelegate> InitializeCommands() {
-			Dictionary<string, CommandDelegate> cmds = new Dictionary<string, CommandDelegate>();
+		public override void InitializeCommands(Dictionary<string, CommandDelegate> cmds) {
 			cmds.Add("namae", Cmd_Namae);
 			cmds.Add("hitode", Cmd_HitodeKangaeru);
 			cmds.Add("miru", Cmd_Miru);
-			return cmds;
 		}
 
 		public override void SetDefaultSettings(IReSettings sets) {
@@ -29,16 +27,22 @@ namespace Wah_Commands {
 		/************************************************
 		***  Commands
 		*************************************************/
+		/// <summary>
+		/// States Fuuko's name
+		/// </summary>
 		private IData Cmd_Namae(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			return new StringData("Fuko desu yo~!", System.Drawing.Color.Chartreuse);
 		}
 
 		private IData Cmd_HitodeKangaeru(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			wah.Display.ShowPersona(new BouncingChangeAnimation(wah.Disk.LoadImageDir(this, "anime1", ".gif"), System.Drawing.Point.Empty));
 			while (true);
 		}
 
 		private IData Cmd_Miru(ICore wah, CommandBundle bun) {
+			bun.AssertNoArgs();
 			wah.Display.ShowPersona(new SimpleImage(wah.Disk.LoadImage(this, "fuko.png")));
 			return new NoData();
 		}
