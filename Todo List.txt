@@ -1,0 +1,10 @@
+Modules to add:
+ - Password Module
+ - Encryption Module
+
+Core Features:
+ - Module dependencies: some Modules make call through the API to other modules, ensure the other modules are loaded when this Module is loaded
+ - Background Tasks: ability to move running task to the background, run command as background task, recieve notifications of completed tasks, view currently running tasks, etc.
+ - Macros: certain strings can be expanded into longer string forms to save typing
+ - Paste from clipboard: interpret clipboard data into IData and use it on the commandline as an argument
+ - Settings: each module can have its own settings, set within core module's wrapper set method, or in each module's inherited set command (ex: Wah.set k=akari.download v=URL or akari.set k=download v=URL); try to load settings from file, if fail or settings out of date, run InitSettings()

@@ -90,11 +90,11 @@ namespace Wah_Core {
 			ResumeLayout();
 
 			//force create the handle
-			var h = Handle;
+			IntPtr h = Handle;
 			animationTask.Start();
 		}
 		private void AnimationLoop() {
-			for (;;) {
+			while (true) {
 				if (animeToken.Token.WaitHandle.WaitOne(ANIMATION_CLOCK)) {
 					break;
 				}

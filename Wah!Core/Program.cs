@@ -25,7 +25,7 @@ namespace Wah_Core {
 			wwind = new WahWindow(wpro);
 		}
 
-		static void Main(string[] args) {
+		static void Main2(string[] args) {
 			Program mainProgram = new Program();
 			mainProgram.PreRunOperations();
 			mainProgram.Log("Beginning UI loop");
