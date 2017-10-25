@@ -15,7 +15,7 @@ namespace Wah_Interface {
 		/// If this command is given the command bundle, will it be able to function properly?
 		/// </summary>
 		/// <param name="bun">the command bundle</param>
-		bool Validate(NewIBundle bun);
+		bool Validate(IBundle bun);
 		/// <summary>
 		/// Returns the last error reported by any validation errors for this command
 		/// </summary>
@@ -26,7 +26,7 @@ namespace Wah_Interface {
 		/// <param name="wah">the wah</param>
 		/// <param name="bun">the command bundle</param>
 		/// <returns>the result of the run of the command</returns>
-		NewIData Run(NewIWah wah, NewIBundle bun);
+		IData Run(IWah wah, IBundle bun);
 
 		/// <summary>
 		/// Run this command on the given command bundle with access to the given wah
@@ -36,7 +36,7 @@ namespace Wah_Interface {
 		/// <param name="wah">the wah</param>
 		/// <param name="bun">the command bundle</param>
 		/// <returns>the result of the run of the command</returns>
-		D Run<D>(NewIWah wah, NewIBundle bun) where D : NewIData;
+		D Run<D>(IWah wah, IBundle bun) where D : IData;
 	}
 
 	/// <summary>
@@ -49,12 +49,12 @@ namespace Wah_Interface {
 			Name = name;
 		}
 
-		public abstract bool Validate(NewIBundle bun);
+		public abstract bool Validate(IBundle bun);
 		public abstract string LastError();
-		public abstract NewIData Run(NewIWah wah, NewIBundle bun);
+		public abstract IData Run(IWah wah, IBundle bun);
 
-		public D Run<D>(NewIWah wah, NewIBundle bun) where D : NewIData {
-			NewIData run = Run(wah, bun);
+		public D Run<D>(IWah wah, IBundle bun) where D : IData {
+			IData run = Run(wah, bun);
 			if (run is D) {
 				return (D)run;
 			}
@@ -90,13 +90,13 @@ namespace Wah_Interface {
 	/// </summary>
 	public sealed class UncheckedCommand : ACommand {
 		
-		private Func<NewIWah, NewIBundle, NewIData> commandBody;
+		private Func<IWah, IBundle, IData> commandBody;
 
-		public UncheckedCommand(string name, Func<NewIWah, NewIBundle, NewIData> commandBody) : base(name) {
+		public UncheckedCommand(string name, Func<IWah, IBundle, IData> commandBody) : base(name) {
 			this.commandBody = commandBody;
 		}
 
-		public override bool Validate(NewIBundle bun) {
+		public override bool Validate(IBundle bun) {
 			return true;
 		}
 
@@ -105,7 +105,7 @@ namespace Wah_Interface {
 			return null;
 		}
 
-		public override NewIData Run(NewIWah wah, NewIBundle bun) {
+		public override IData Run(IWah wah, IBundle bun) {
 			return commandBody(wah, bun);
 		}
 
@@ -114,7 +114,7 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Models a command that checks for valid flags and arguments, and checks for a return value of a specific type.
 	/// </summary>
-	public abstract class CheckedCommand<D> : ACommand where D : NewIData {
+	public abstract class CheckedCommand<D> : ACommand where D : IData {
 		private readonly IRule[] rules;
 		private string lastError;
 
@@ -128,7 +128,7 @@ namespace Wah_Interface {
 			lastError = null;
 		}
 
-		public override bool Validate(NewIBundle bun) {
+		public override bool Validate(IBundle bun) {
 			foreach(IRule rule in rules) {
 				if (!rule.Validate(bun)) {
 					//record the rule violation
@@ -143,8 +143,8 @@ namespace Wah_Interface {
 			return lastError;
 		}
 
-		public override sealed NewIData Run(NewIWah wah, NewIBundle bun) {
-			NewIData data = Apply(wah, bun);
+		public override sealed IData Run(IWah wah, IBundle bun) {
+			IData data = Apply(wah, bun);
 			//ensure returned value is of the promised type
 			if(data is D) {
 				return data;
@@ -154,54 +154,54 @@ namespace Wah_Interface {
 			}
 		}
 
-		public abstract D Apply(NewIWah wah, NewIBundle bun);
+		public abstract D Apply(IWah wah, IBundle bun);
 	}
 
 
 
-	public class SysCommand_Test : CheckedCommand<NewStringData> {
+	public class SysCommand_Test : CheckedCommand<StringData> {
 		public SysCommand_Test() : base("test",
 			//Rules
-			new TypeRule<NewStringData>('s'),
-			new TypeRule<NewStringData>('m'),
-			new TypeRule<NewStringData>('e'),
+			new TypeRule<StringData>('s'),
+			new TypeRule<StringData>('m'),
+			new TypeRule<StringData>('e'),
 			new RequireRule('m'),
 			new CorequireRule('s', 'e')) {}
 
-		public override NewStringData Apply(NewIWah wah, NewIBundle bun) {
-			string m = bun.Argument<NewStringData>('m').Data;
+		public override StringData Apply(IWah wah, IBundle bun) {
+			string m = bun.Argument<StringData>('m').Data;
 			if (bun.HasArgument('s')) {
-				string s = bun.Argument<NewStringData>('s').Data;
-				string e = bun.Argument<NewStringData>('e').Data;
-				return new NewStringData(s + m + e);
+				string s = bun.Argument<StringData>('s').Data;
+				string e = bun.Argument<StringData>('e').Data;
+				return new StringData(s + m + e);
 			}
 			else {
-				return new NewStringData(m);
+				return new StringData(m);
 			}
 		}
 	}
 
-	public class SysCommand_BImage : CheckedCommand<NewImageData> {
+	public class SysCommand_BImage : CheckedCommand<ImageData> {
 		public SysCommand_BImage() : base("bimage",
 			//Rules
-			new TypeRule<NewIntData>('w'),
-			new TypeRule<NewIntData>('h'),
+			new TypeRule<IntData>('w'),
+			new TypeRule<IntData>('h'),
 			new RequireRule('w'),
 			new CorequireRule('w', 'h')) { }
 
-		public override NewImageData Apply(NewIWah wah, NewIBundle bun) {
-			return new NewImageData(new System.Drawing.Bitmap(bun.Argument<NewIntData>('w').Data, 
-				bun.Argument<NewIntData>('h').Data));
+		public override ImageData Apply(IWah wah, IBundle bun) {
+			return new ImageData(new System.Drawing.Bitmap(bun.Argument<IntData>('w').Data, 
+				bun.Argument<IntData>('h').Data));
 		}
 	}
 
-	public class SysCommand_String : CheckedCommand<NewStringData> {
+	public class SysCommand_String : CheckedCommand<StringData> {
 		public SysCommand_String() :base ("string", 
 			//Rules
 			new RequireRule('i')) {}
 
-		public override NewStringData Apply(NewIWah wah, NewIBundle bun) {
-			return new NewStringData(bun.Argument('i').ToString());
+		public override StringData Apply(IWah wah, IBundle bun) {
+			return new StringData(bun.Argument('i').ToString());
 		}
 
 	}

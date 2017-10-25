@@ -12,7 +12,7 @@ namespace Wah_Interface {
 		public AWahException(string message, Exception innerException) : base(message, innerException) {
 
 		}
-		public void OutputError(ICore wah) {
+		public void OutputError(OldICore wah) {
 			if (!IsThreadAbort()) {
 				wah.PutErr(GetMessages());
 			}

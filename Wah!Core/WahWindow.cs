@@ -7,9 +7,9 @@ using System.Windows.Forms;
 using Wah_Interface;
 
 namespace Wah_Core {
-	internal class WahWindow : Form, IDisplay {
+	internal class WahWindow : Form, NewIDisplay {
 		private const int ANIMATION_CLOCK = 100;
-		private IProcessor wpro;
+		private NewIProcessor wpro;
 		private CancellationTokenSource animeToken;
 		private Task animationTask;
 		private IList<string> history;
@@ -20,7 +20,7 @@ namespace Wah_Core {
 		private VisualBox topPic;
 		private VisualBox botPic;
 		private Label inputLabel;
-		public WahWindow(IProcessor wpro) {
+		public WahWindow(NewIProcessor wpro) {
 			this.wpro = wpro;
 			history = new List<string>();
 			iHistory = -1; // -1 denotes selecting nothing from the history
@@ -183,15 +183,17 @@ namespace Wah_Core {
 			}));
 		}
 
-		public void ShowPersona(IVisual persona) {
+		public void ShowVisual(IVisual visual, int id) {
+			if(id > 0 || id > 1) {
+				throw new WahInvalidVisualException(id);
+			}
 			CallOnUI(new Action(delegate {
-				botPic.UpdateVisual(persona);
-			}));
-		}
-
-		public void ShowExtra(IVisual extra) {
-			CallOnUI(new Action(delegate {
-				topPic.UpdateVisual(extra);
+				if(id == 0) {
+					topPic.UpdateVisual(visual);
+				}
+				else {
+					botPic.UpdateVisual(visual);
+				}
 			}));
 		}
 
@@ -220,6 +222,8 @@ namespace Wah_Core {
 			BeginInvoke(act);
 		}
 	}
+
+
 	internal class VisualBox : Panel {
 		private volatile IVisual visual;
 		public VisualBox() : this(new EmptyImage(new Point(0, 0))) { }

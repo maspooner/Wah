@@ -9,11 +9,11 @@ namespace Wah_Interface {
 	/// Models an operation that can be applied to all types of IData.
 	/// </summary>
 	/// <typeparam name="R">The return type of the operation to perform</typeparam>
-	public interface NewIDataVisitor<R> {
-		R Visit(NewIData data);
-		R VisitNone(NewNoData data);
-		R VisitString(NewStringData data);
-		R VisitInt(NewIntData data);
-		R VisitImage(NewImageData data);
+	public interface IDataVisitor<R> {
+		R Visit(IData data);
+		R VisitNone(NoData data);
+		R VisitString(StringData data);
+		R VisitInt(IntData data);
+		R VisitImage(ImageData data);
 	}
 }

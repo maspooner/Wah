@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,31 +13,33 @@ namespace Wah_Core {
 	/// <summary>
 	/// The part of the wah processing that handles all procesing and parsing of user input
 	/// </summary>
-	internal partial class NewFuukoProcessor : NewIProcessor, NewIParser, NewIApi {
+	internal partial class NewFuukoProcessor : NewIProcessor, IParser, NewIApi {
 		private const char MODULE_DELIM = '.'; //Separates modules from commands
 
 		private char[] moduleDelimCache; // prevents creating array each time string[].Split is needed
-		private ISet<NewIModule> modules;
+		private ISet<IModule> modules;
 		private NewOutputVisitor outputVisit;
 		private object objLock;
 		private string primedCmd;
 		private Thread workerThread;
 		private bool isDone;
-		private NewWahMain coreWah;
-		private NewIData lastOutput;
+		private WahMain coreWah;
+		private IData lastOutput;
+		private string programDir;
 
-		internal NewFuukoProcessor(NewWahMain coreWah) : base(FUUKO_NO_NAMAE, FUUKO_NO_HAN) {
-			modules = new HashSet<NewIModule>();
+		internal NewFuukoProcessor(WahMain coreWah) : base(FUUKO_NO_NAMAE, FUUKO_NO_HAN) {
+			modules = new HashSet<IModule>();
 			modules.Add(this);
 			moduleDelimCache = new char[] { MODULE_DELIM };
 			objLock = new object();
 			primedCmd = "";
 			this.coreWah = coreWah;
 			isDone = false;
-			lastOutput = new NewNoData();
+			lastOutput = new NoData();
 			outputVisit = new NewOutputVisitor(coreWah);
 
 			workerThread = new Thread(RunCommandLoop);
+			LoadModule("Wah!Commands", "fuuko");
 		}
 
 		/// <summary>
@@ -43,7 +47,7 @@ namespace Wah_Core {
 		/// </summary>
 		/// <param name="modName">the name of the module to find</param>
 		/// <returns>the found module</returns>
-		private NewIModule FindModule(string modName) {
+		private IModule FindModule(string modName) {
 			return modules.First(mod => mod.Name.Equals(modName));
 		}
 
@@ -109,6 +113,35 @@ namespace Wah_Core {
 			workerThread.Start();
 		}
 
+		public void LoadModule(string dllName, string moduleName) {
+			if(!ModuleLoaded(moduleName)) {
+				Assembly dll = Assembly.LoadFile(Path.Combine(Disk.ProgramDirectory, dllName + ".dll"));
+				//grab the type that matches the module name
+				Type moduleType = dll.GetTypes().First(t =>
+					t.Name.Equals(moduleName, StringComparison.InvariantCultureIgnoreCase));
+				IModule newModule = (IModule)Activator.CreateInstance(moduleType);
+				modules.Add(newModule);
+			}
+		}
+
+		public void LoadModuleLibrary(string dllName) {
+			Assembly dll = Assembly.LoadFile(Path.Combine(Disk.ProgramDirectory, dllName + ".dll"));
+			foreach(Type t in dll.GetTypes()) {
+				if(t is IModule) {
+					if(!ModuleLoaded(t.Name)) {
+						IModule newModule = (IModule)Activator.CreateInstance(t);
+					}
+				}
+			}
+		}
+
+
+		public void UnloadModule(string modName) {
+			if (ModuleLoaded(modName)) {
+				modules.Remove(FindModule(modName));
+			}
+		}
+
 		////////////////////////////////////////////////////////
 		// IApi methods
 		////////////////////////////////////////////////////////
@@ -123,11 +156,11 @@ namespace Wah_Core {
 			return primedCmd;
 		}
 
-		public NewIData Call(string line) {
-			return Call<NewIData>(line);
+		public IData Call(string line) {
+			return Call<IData>(line);
 		}
 
-		public D Call<D>(string line) where D : NewIData {
+		public D Call<D>(string line) where D : IData {
 			line = line.Trim();
 			//split into command and bundle
 			int iFirstSpace = line.IndexOf(' ');
@@ -140,8 +173,8 @@ namespace Wah_Core {
 			return ParseCommand(sCmd).Run<D>(coreWah, ParseBundle(sBun));
 		}
 
-		public NewIData ParseData(string line) {
-			return new NewNoData();
+		public IData ParseData(string line) {
+			return new NoData();
 		}
 
 		////////////////////////////////////////////////////////
@@ -156,7 +189,7 @@ namespace Wah_Core {
 					string mod = pieces[0];
 					cmd = pieces[1];
 					if(ModuleLoaded(mod)) {
-						NewIModule module = FindModule(mod);
+						IModule module = FindModule(mod);
 						if(module.HasCommand(cmd)) {
 							return module.GetCommand(cmd);
 						}
@@ -185,7 +218,7 @@ namespace Wah_Core {
 				}
 				else if(shareName == 1) {
 					//know exactly which module to run
-					NewIModule module = modules.First(mod => mod.HasCommand(cmd));
+					IModule module = modules.First(mod => mod.HasCommand(cmd));
 					if(module.HasCommand(cmd)) {
 						return module.GetCommand(cmd);
 					}
@@ -201,10 +234,10 @@ namespace Wah_Core {
 			}
 		}
 
-		public NewIBundle ParseBundle(string bun) {
+		public IBundle ParseBundle(string bun) {
 			ISet<string> flags = new HashSet<string>();
-			IDictionary<char, NewIData> arguments = new Dictionary<char, NewIData>();
-			return new NewCommandBundle(flags, arguments);
+			IDictionary<char, IData> arguments = new Dictionary<char, IData>();
+			return new CommandBundle(flags, arguments);
 		}
 
 		
@@ -213,33 +246,33 @@ namespace Wah_Core {
 	/// <summary>
 	/// Models a visitor for IData that can display any type of IData.
 	/// </summary>
-	public class NewOutputVisitor : NewIDataVisitor<NewIData> {
-		private NewIWah wah;
+	public class NewOutputVisitor : IDataVisitor<IData> {
+		private IWah wah;
 
-		public NewOutputVisitor(NewIWah wah) {
+		public NewOutputVisitor(IWah wah) {
 			this.wah = wah;
 		}
 
-		public NewIData Visit(NewIData data) {
+		public IData Visit(IData data) {
 			return data.Accept(this);
 		}
 
-		public NewIData VisitImage(NewImageData data) {
+		public IData VisitImage(ImageData data) {
 			wah.Putln(data.ToString(), Color.Aquamarine);
 			wah.Display.ShowVisual(new SimpleImage(data.Data), 1);
 			return data;
 		}
 
-		public NewIData VisitInt(NewIntData data) {
+		public IData VisitInt(IntData data) {
 			wah.Putln(data.ToString(), Color.OrangeRed);
 			return data;
 		}
 
-		public NewIData VisitNone(NewNoData data) {
+		public IData VisitNone(NoData data) {
 			return data;
 		}
 
-		public NewIData VisitString(NewStringData data) {
+		public IData VisitString(StringData data) {
 			wah.Putln(data.Data, data.Color);
 			return data;
 		}

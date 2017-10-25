@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Wah_Interface;
 
 namespace Wah_Commands {
-	public class NewAkari : NewAModule {
+	public class Akari : AModule {
 		private const string AKARI_NO_NAMAE = "akari";
 		private const string AKARI_NO_HAN = "Pomf alpha 0";
 		
-		public NewAkari() : base(AKARI_NO_NAMAE, AKARI_NO_HAN) { }
+		public Akari() : base(AKARI_NO_NAMAE, AKARI_NO_HAN) { }
 
 		protected override NewICommand[] CreateCommands() {
 			return new NewICommand[] {
@@ -23,8 +23,8 @@ namespace Wah_Commands {
 		//settings.add("akari.proxy", "none")
 		//}
 
-		private NewIData Cmd_(NewIWah wah, NewIBundle bun) {
-			return new NewNoData();
+		private IData Cmd_(IWah wah, IBundle bun) {
+			return new NoData();
 		}
 
 	}

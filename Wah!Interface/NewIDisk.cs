@@ -12,6 +12,11 @@ namespace Wah_Interface {
 	/// </summary>
 	public interface NewIDisk {
 		/// <summary>
+		/// Gets the operating directory of the Wah program
+		/// </summary>
+		string ProgramDirectory { get; }
+
+		/// <summary>
 		/// Loads an image with the given file name from the data folder of the module
 		/// </summary>
 		/// <param name="fileName">the name of just the image file (name + extension)</param>
@@ -32,18 +37,36 @@ namespace Wah_Interface {
 		/// <param name="fileName">the name of the text file</param>
 		/// <returns>the lines of text</returns>
 		string[] LoadLines(string fileName);
+
+		/// <summary>
+		/// Ensures that the given path starting from the program directory exists
+		/// </summary>
+		/// <param name="path">the directory to check</param>
+		/// <returns>true if path had to be created</returns>
+		bool EnsurePath(string path);
+
+		/// <summary>
+		/// Ensures that the given file exists
+		/// </summary>
+		/// <param name="file">the file to check</param>
+		/// <returns>true if file had to be created</returns>
+		bool EnsureFile(string file);
 	}
 
 	internal class NewWahDisk : NewIDisk {
-		private const string MOD_DATA_NAME = "mod-data";
-		private NewIModule mod;
+		private const string BASE_DATA_NAME = "mod-data";
+		private const string MOD_DATA_NAME = "data";
+		private IModule mod;
 		private string programLocation;
-		private string DataDir { get { return Path.Combine(programLocation, MOD_DATA_NAME); } }
+		private string DataDir { get { return Path.Combine(programLocation, BASE_DATA_NAME, MOD_DATA_NAME); } }
+		public string ProgramDirectory { get { return programLocation; } }
 
-		internal NewWahDisk(NewIModule mod) {
+		internal NewWahDisk(IModule mod) {
 			this.mod = mod;
 			programLocation = 
 				Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
+			//make sure path to data exisits
+			EnsurePath(DataDir);
 		}
 
 		public string[] LoadLines(string fileName) {
@@ -81,5 +104,27 @@ namespace Wah_Interface {
 			}
 			return bits.ToArray();
 		}
+
+		public bool EnsurePath(string path) {
+			if(!Directory.Exists(path)) {
+				Directory.CreateDirectory(path);
+				return true;
+			}
+			return false;
+		}
+
+		public bool EnsureFile(string file) {
+			if (File.Exists(file)) {
+				return false;
+			}
+			else {
+				//create any necessary folders in the path
+				EnsurePath(Path.GetDirectoryName(file));
+				//create file and immediately close it
+				File.Create(file).Dispose();
+				return true;
+			}
+		}
+
 	}
 }

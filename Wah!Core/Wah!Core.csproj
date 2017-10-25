@@ -48,17 +48,13 @@
     <Compile Include="GlobalHotKeys.cs" />
     <Compile Include="NewFuuko.cs" />
     <Compile Include="NewWahProcessor.cs" />
-    <Compile Include="NewWahMain.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="WahMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SystemCommands.cs" />
     <Compile Include="WahDisk.cs" />
     <Compile Include="WahProcessing.cs" />
-    <Compile Include="WahSettings.cs" />
+    <Compile Include="OldWahSettings.cs" />
     <Compile Include="WahWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="NewWahWindow.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>

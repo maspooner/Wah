@@ -9,7 +9,7 @@ namespace Wah_Interface {
 	/// Models a bundle of flags and arguments that can be passed to a command to give it more information about what
 	/// operation the user wants to accomplish.
 	/// </summary>
-	public interface NewIBundle {
+	public interface IBundle {
 		/// <summary>
 		/// Does this bundle have a flag for the given id?
 		/// </summary>
@@ -27,26 +27,26 @@ namespace Wah_Interface {
 		/// Useful for visitors for accepting multiple kinds of IData.
 		/// </summary>
 		/// <param name="id">the id of the argument</param>
-		NewIData Argument(char id);
+		IData Argument(char id);
 
 		/// <summary>
 		/// Returns the IData of the given type for the argument with the given id.
 		/// </summary>
 		/// <typeparam name="D">the type of IData</typeparam>
 		/// <param name="id">the id of the argument to return</param>
-	    D Argument<D>(char id) where D : NewIData;
+	    D Argument<D>(char id) where D : IData;
 	}
 
 
 	/// <summary>
 	/// Models a default implementation of a bundle of flags and arguments.
 	/// </summary>
-	public class NewCommandBundle : NewIBundle {
+	public class CommandBundle : IBundle {
 		private ISet<string> flags;
-		private IDictionary<char, NewIData> arguments;
+		private IDictionary<char, IData> arguments;
 
 		
-		public NewCommandBundle(ISet<string> flags, IDictionary<char, NewIData> arguments) {
+		public CommandBundle(ISet<string> flags, IDictionary<char, IData> arguments) {
 			this.flags = flags;
 			this.arguments = arguments;
 		}
@@ -59,7 +59,7 @@ namespace Wah_Interface {
 			return arguments.ContainsKey(id);
 		}
 
-		public NewIData Argument(char id) {
+		public IData Argument(char id) {
 			if(HasArgument(id)) {
 				return arguments[id];
 			}
@@ -68,8 +68,8 @@ namespace Wah_Interface {
 			}
 		}
 
-		public D Argument<D>(char id) where D : NewIData {
-			NewIData data = Argument(id);
+		public D Argument<D>(char id) where D : IData {
+			IData data = Argument(id);
 			if(data is D) {
 				return (D)data;
 			}

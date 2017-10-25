@@ -9,6 +9,7 @@ using Wah_Interface;
 
 namespace Wah_Core {
 	internal partial class WahProcessing {
+		private OldICore wah;
 		////////////////////////////////////////////////////////////////////////////////
 		////  AModule methods
 		////////////////////////////////////////////////////////////////////////////////
@@ -18,34 +19,27 @@ namespace Wah_Core {
 			cmds.Add("cmdlist", Cmd_Cmdlist);
 			cmds.Add("modlist", Cmd_Modlist);
 			cmds.Add("help", Cmd_Help);
-			cmds.Add("c", Cmd_Close);
-			cmds.Add("shutdown", Cmd_Shutdown);
-			cmds.Add("clr", Cmd_Clear);
 			cmds.Add("macro", Cmd_Macro);
 			cmds.Add("echo", Cmd_Echo);
-
-			cmds.Add("chn1", Cmd_Chain1);
-			cmds.Add("chn2", Cmd_Chain2);
-			cmds.Add("chn3", Cmd_Chain3);
 		}
-		public override void SetDefaultSettings(IReSettings sets) {
+		public override void SetDefaultSettings(ISettings sets) {
 			sets.RegisterSetting(this, "web.browser", "firefox", SettingType.STRING);
 		}
 		/************************************************
 		***  Commands
 		*************************************************/
-		private IData Cmd_Wah(ICore wah, CommandBundle bun) {
+		private OldIData Cmd_Wah(OldICore wah, OldCommandBundle bun) {
 			bun.AssertNoArgs();
-			return new StringData("Wah!");
+			return new OldStringData("Wah!");
 		}
 
-		private IData Cmd_WahHuh(ICore wah, CommandBundle bun) {
+		private OldIData Cmd_WahHuh(OldICore wah, OldCommandBundle bun) {
 			bun.AssertNoArgs();
 			wah.Putln("Wah?", Color.Yellow);
 			return wah.Api.Call("wah!");
 		}
 
-		private IData Cmd_Cmdlist(ICore wah, CommandBundle bun) {
+		private OldIData Cmd_Cmdlist(OldICore wah, OldCommandBundle bun) {
 			switch (bun.Arguments.Count) {
 				case 0: return Cmdlist_PrintModule(wah, this);
 				case 1: return Cmdlist_PrintModule(wah, FindModule(bun.Arguments[0].AsString()));
@@ -53,14 +47,14 @@ namespace Wah_Core {
 			}
 		}
 
-		private ListData Cmdlist_PrintModule(ICore wah, AModule mod) {
+		private OldListData Cmdlist_PrintModule(OldICore wah, OldAModule mod) {
 			wah.Putln("Showing commands for module " + mod.Name, Color.Aqua);
-			IList<IData> cmds = mod.Commands.Select(pair => new StringData(pair.Key) as IData).ToList();
-			return new ListData(cmds);
+			IList<OldIData> cmds = mod.Commands.Select(pair => new OldStringData(pair.Key) as OldIData).ToList();
+			return new OldListData(cmds);
 		}
 
-		private IData Cmd_Modlist(ICore wah, CommandBundle bun) {
-			IList<IData> rets = new List<IData>();
+		private OldIData Cmd_Modlist(OldICore wah, OldCommandBundle bun) {
+			IList<OldIData> rets = new List<OldIData>();
 			bun.AssertNoArgs();
 			//show loaded and unloaded modules
 			if (bun.HasFlag("-a")) {
@@ -71,16 +65,16 @@ namespace Wah_Core {
 			}
 			//show unloaded modules
 			if (bun.HasFlag("-u")) {
-				rets.Add(new StringData("Unloaded modules: ", Color.Chartreuse));
+				rets.Add(new OldStringData("Unloaded modules: ", Color.Chartreuse));
 				//call: modlist -u
 				//for each found assembly
-				foreach (Assembly a in this.wah.ReDisk.LoadAllAssemblies()) {
+				foreach (Assembly a in this.wah.Disk.LoadAllAssemblies()) {
 					//for each AModule type in the assembly
-					foreach (Type t in a.GetTypes().Where(q => q.BaseType == typeof(AModule))) {
-						AModule newModule = (AModule)Activator.CreateInstance(t);
+					foreach (Type t in a.GetTypes().Where(q => q.BaseType == typeof(OldAModule))) {
+						OldAModule newModule = (OldAModule)Activator.CreateInstance(t);
 						//only print unloaded modules
 						if (!ModuleLoaded(newModule.Name)) {
-							rets.Add(new StringData(newModule.Name, Color.LightGray));
+							rets.Add(new OldStringData(newModule.Name, Color.LightGray));
 						}
 					}
 				}
@@ -88,15 +82,19 @@ namespace Wah_Core {
 			if (bun.FlagCount(0) || bun.HasFlag("-l")) {
 				//show loaded modules
 				//call: modlist OR modlist -l
-				rets.Add(new StringData("Loaded modules: ", Color.Gold));
-				foreach (AModule m in modules) {
-					rets.Add(new StringData(m.Name));
+				rets.Add(new OldStringData("Loaded modules: ", Color.Gold));
+				foreach (OldAModule m in new List<OldAModule>()) {
+					rets.Add(new OldStringData(m.Name));
 				}
 			}
-			return new ListData(rets);
+			return new OldListData(rets);
 		}
 
-		private IData Cmd_Help(ICore wah, CommandBundle bun) {
+		private OldAModule FindModule(string s) {
+			throw new NotImplementedException();
+		}
+
+		private OldIData Cmd_Help(OldICore wah, OldCommandBundle bun) {
 			IList<string> strArgs = bun.StringArgs();
 			if (bun.ArgCount(0)) {
 				//call: help
@@ -118,7 +116,7 @@ namespace Wah_Core {
 			else if (bun.ArgCount(2)) {
 				//call: help fuko hitode
 				if (ModuleLoaded(strArgs[0])) {
-					AModule mod = FindModule(strArgs[0]);
+					OldAModule mod = FindModule(strArgs[0]);
 					if (mod.Commands.ContainsKey(strArgs[1])) {
 						Help_Command(mod, strArgs[1]);
 					}
@@ -133,45 +131,23 @@ namespace Wah_Core {
 			else {
 				throw new WrongNumberArgumentsException();
 			}
-			return new NoData();
+			return new OldNoData();
 		}
 
-		private void Help_Module(AModule mod) {
+		private void Help_Module(OldAModule mod) {
 			wah.Putln("Module " + mod.Name, Color.GreenYellow);
 			wah.Putln("Version " + mod.Version);
 			wah.Putln("=============================");
-			wah.ReDisk.LoadDisplayHelp(wah, mod, mod.Name);
+			wah.Disk.LoadDisplayHelp(wah, mod, mod.Name);
 		}
 
-		private void Help_Command(AModule mod, string cmd) {
+		private void Help_Command(OldAModule mod, string cmd) {
 			wah.Putln("Command " + cmd + " in module " + mod.Name, Color.GreenYellow);
-			wah.ReDisk.LoadDisplayHelp(wah, mod, cmd);
+			wah.Disk.LoadDisplayHelp(wah, mod, cmd);
 		}
 
-		private IData Cmd_About(ICore wah, CommandBundle bun) {
-			bun.AssertNoArgs();
-			throw new NotImplementedException();
-		}
 
-		private IData Cmd_Close(ICore wah, CommandBundle bun) {
-			bun.AssertNoArgs();
-			wah.Display.HideWindow();
-			return new NoData();
-		}
-
-		private IData Cmd_Shutdown(ICore wah, CommandBundle bun) {
-			bun.AssertNoArgs();
-			Environment.Exit(0);
-			return new NoData();
-		}
-
-		private IData Cmd_Clear(ICore wah, CommandBundle bun) {
-			bun.AssertNoArgs();
-			wah.Display.ClearWindow();
-			return new NoData();
-		}
-
-		private IData Cmd_Macro(ICore wah, CommandBundle bun) {
+		private OldIData Cmd_Macro(OldICore wah, OldCommandBundle bun) {
 			IList<string> strArgs = bun.StringArgs();
 			if (bun.Arguments.Count >= 1) {
 				if (strArgs[0].Equals("add")) {
@@ -194,7 +170,7 @@ namespace Wah_Core {
 						foreach (string key in macros.Keys) {
 							wah.Putln(key + " -> " + macros[key]);
 						}
-						return new NoData();
+						return new OldNoData();
 					}
 					else {
 						throw new IllformedInputException("subcommand list takes no arguments, silly!");
@@ -209,7 +185,7 @@ namespace Wah_Core {
 			}
 		}
 
-		private IData Macro_Add(IList<string> args) {
+		private OldIData Macro_Add(IList<string> args) {
 			//need add + from + to
 			if (args.Count >= 3) {
 				string from = args[1];
@@ -231,10 +207,10 @@ namespace Wah_Core {
 			else {
 				throw new IllformedInputException("add subcommand must take at least 3 arguments");
 			}
-			return new NoData();
+			return new OldNoData();
 		}
 
-		private IData Macro_Edit(ICore wah, IList<string> args) {
+		private OldIData Macro_Edit(OldICore wah, IList<string> args) {
 			//need edit + from + to
 			if (args.Count >= 3) {
 				string from = args[1];
@@ -255,10 +231,10 @@ namespace Wah_Core {
 			else {
 				throw new IllformedInputException("edit subcommand must take at least 3 arguments");
 			}
-			return new NoData();
+			return new OldNoData();
 		}
 
-		private IData Macro_Delete(IList<string> args) {
+		private OldIData Macro_Delete(IList<string> args) {
 			//need delete + from
 			if (args.Count == 2) {
 				string from = args[1];
@@ -273,12 +249,12 @@ namespace Wah_Core {
 			else {
 				throw new IllformedInputException("delete subcommand must take 2 arguments");
 			}
-			return new NoData();
+			return new OldNoData();
 		}
 
-		private IData Cmd_Echo(ICore wah, CommandBundle bun) {
+		private OldIData Cmd_Echo(OldICore wah, OldCommandBundle bun) {
 			string echo = string.Join(" ", bun.StringArgs());
-			return new StringData(echo, Color.LightPink);
+			return new OldStringData(echo, Color.LightPink);
 		}
 
 		//private IReturn Cmd_Config(ICore wah, string[] args) {
@@ -297,25 +273,6 @@ namespace Wah_Core {
 		//	return new NoReturn();
 		//}
 
-		private IData Cmd_Chain1(ICore wah, CommandBundle bun) {
-			int i = wah.Api.Call("chn2").AsInt();
-			wah.Putln("i: " + i);
-			return new NoData();
-		}
-
-		private IData Cmd_Chain2(ICore wah, CommandBundle bun) {
-			bool b = wah.Api.Call("chn3 true").AsBool();
-			return new IntData(b ? 5 : 6);
-		}
-
-		private IData Cmd_Chain3(ICore wah, CommandBundle bun) {
-			if (bun.ArgCount(0)) {
-				return new NoData();
-			}
-			else {
-				throw new Exception("FATAL ERROR");
-				//return new BoolReturn(true);
-			}
-		}
+		
 	}
 }

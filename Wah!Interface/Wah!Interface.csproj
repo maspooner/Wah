@@ -41,23 +41,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AModule.cs" />
+    <Compile Include="OldAModule.cs" />
     <Compile Include="CommandBundle.cs" />
     <Compile Include="NewICommand.cs" />
     <Compile Include="IRule.cs" />
-    <Compile Include="NewIModule.cs" />
-    <Compile Include="NewICommandBundle.cs" />
-    <Compile Include="NewIData.cs" />
-    <Compile Include="NewIDataVisitor.cs" />
-    <Compile Include="NewIParser.cs" />
-    <Compile Include="NewIWah.cs" />
+    <Compile Include="IModule.cs" />
+    <Compile Include="IBundle.cs" />
+    <Compile Include="IData.cs" />
+    <Compile Include="IDataVisitor.cs" />
+    <Compile Include="IParser.cs" />
+    <Compile Include="IWah.cs" />
     <Compile Include="NewIDisk.cs" />
     <Compile Include="NewWahException.cs" />
-    <Compile Include="Visual.cs" />
-    <Compile Include="IData.cs" />
-    <Compile Include="ICore.cs" />
+    <Compile Include="IVisual.cs" />
+    <Compile Include="OldIData.cs" />
+    <Compile Include="OldICore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WahConstants.cs" />
     <Compile Include="WahException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

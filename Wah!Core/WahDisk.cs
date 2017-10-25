@@ -9,7 +9,7 @@ using System.IO;
 using System.Drawing;
 
 namespace Wah_Core {
-	internal class WahDisk : IDisk, IReDisk {
+	internal class WahDisk : IDisk {
 		private const string MAGIC_COLOR = "$!";
 		private const string MAGIC_COLOR_START = ",";
 		private const string MAGIC_COLOR_END = ".";
@@ -23,51 +23,19 @@ namespace Wah_Core {
 			basePath = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 		}
 		//relative
-		private string RelModuleDir(AModule mod) { return Path.Combine("mod-data", mod.Name); }
-		public string RelDataDir(AModule mod) { return Path.Combine(RelModuleDir(mod), "data"); }
+		private string RelModuleDir(OldAModule mod) { return Path.Combine("mod-data", mod.Name); }
+		private string RelDataDir(OldAModule mod) { return Path.Combine(RelModuleDir(mod), "data"); }
 		//absolute
-		private string FullModuleDir(AModule mod) { return Path.Combine(basePath, RelModuleDir(mod)); }
-		private string FullDataDir(AModule mod) { return Path.Combine(basePath, RelDataDir(mod)); }
-		private string FullHelpDir(AModule mod) { return Path.Combine(basePath, 
+		private string FullModuleDir(OldAModule mod) { return Path.Combine(basePath, RelModuleDir(mod)); }
+		private string FullDataDir(OldAModule mod) { return Path.Combine(basePath, RelDataDir(mod)); }
+		private string FullHelpDir(OldAModule mod) { return Path.Combine(basePath, 
 			Path.Combine(RelModuleDir(mod), "help")); }
-
-		/// <summary>
-		/// Ensures a directory path exists, by creating it if it doesn't exist
-		/// </summary>
-		/// <returns>TRUE if had to create a new directory</returns>
-		public bool EnsureFullDir(string dirPath) {
-			if (Directory.Exists(dirPath)) {
-				return false;
-			}
-			else {
-				Directory.CreateDirectory(dirPath);
-				return true;
-			}
-		}
-		public bool EnsureFullFile(string filePath) {
-			if(File.Exists(filePath)) {
-				return false;
-			}
-			else {
-				//create any necessary folders in the path
-				EnsureFullDir(Path.GetDirectoryName(filePath));
-				//create file and immediately close it
-				File.Create(filePath).Dispose();
-				return true;
-			}
-		}
-		public bool EnsureRelDir(string relDirPath) {
-			return EnsureFullDir(Path.Combine(basePath, relDirPath));
-		}
-		public bool EnsureRelFile(string relFilePath) {
-			return EnsureFullFile(Path.Combine(basePath, relFilePath));
-		}
 
 		/// <summary>
 		/// Attempts to load the specified help file located in the current module.
 		/// If the file exists, it is parsed and displayed to the wah! core's display
 		/// </summary>
-		public void LoadDisplayHelp(ICore wah, AModule mod, string helpName) {
+		public void LoadDisplayHelp(OldICore wah, OldAModule mod, string helpName) {
 			//get the full path to the help file
 			string path = Path.Combine(FullHelpDir(mod), helpName + ".txt");
 			if (File.Exists(path)) {
@@ -98,7 +66,7 @@ namespace Wah_Core {
 		/// <param name="line">what's left of the line to print</param>
 		/// <param name="col">the color for the line</param>
 		/// <returns>what's left of the line to parse</returns>
-		private string FormatColor(ICore wah, string line, System.Drawing.Color col) {
+		private string FormatColor(OldICore wah, string line, System.Drawing.Color col) {
 			//while still color to parse
 			while (line.Contains(MAGIC_COLOR)) {
 				//index of the color command
@@ -149,23 +117,12 @@ namespace Wah_Core {
 			return "";
 		}
 
-		public bool AttemptFirstTimeSetup() {
-			return EnsureFullDir(FullModuleDir(wpro));
-		}
-
-		//public byte[] LoadData(string fileName) {
-		//	string path = ModDataPath() + fileName;
-		//}
-
-		public byte[] Load(string fileName) {
-			throw new NotImplementedException();
-		}
 		/// <summary>
 		/// Load lines of a text file from the given module's data folder
 		/// </summary>
 		/// <param name="mod">the module folder to look in</param>
 		/// <param name="fileName">just the file name of the file in the module's data folder</param>
-		public string[] LoadLines(AModule mod, string fileName) {
+		public string[] LoadLines(OldAModule mod, string fileName) {
 			string path = Path.Combine(FullDataDir(mod), fileName);
 			try {
 				return File.ReadAllLines(path);
@@ -175,52 +132,20 @@ namespace Wah_Core {
 					+ fileName + " for module " + mod.Name, ex);
 			}
 		}
-		public string[] LoadSettings(AModule mod) {
+		private void EnsurePath(string s) {
+			throw new NotImplementedException();
+		}
+		public string[] LoadSettings(OldAModule mod) {
 			string settingsPath = Path.Combine(FullDataDir(mod), SETTINGS_FILE);
 			//ensure the settings file
-			EnsureFullFile(settingsPath);
+			EnsurePath(settingsPath);
 			//load the settings
 			return LoadLines(mod, SETTINGS_FILE);
 		}
 
-		public Bitmap LoadImage(AModule mod, string fileName) {
-			string path = Path.Combine(FullDataDir(mod), fileName);
-			if (File.Exists(path)) {
-				try {
-					return new Bitmap(path);
-				}
-				catch {
-					throw new IOLoadException("Could not load bitmap from module " + mod.Name + ": " + fileName);
-				}
-			}
-			else {
-				throw new IOLoadException("Could not load bitmap from module " + mod.Name + "\'s data folder the resource " + fileName);
-			}
-		}
-		public Bitmap[] LoadImageDir(AModule mod, string dirName, string ext) {
-			List<Bitmap> bits = new List<Bitmap>();
-			foreach (string file in Directory.EnumerateFiles(Path.Combine(FullDataDir(mod), dirName))) {
-				if (file.EndsWith(ext)) {
-					bits.Add(LoadImage(mod, file));
-				}
-			}
-			return bits.ToArray();
-		}
-
-		public Assembly LoadAssembly(string name) {
-			return Assembly.LoadFile(Path.Combine(basePath, name + ".dll"));
-		}
 		public IEnumerable<Assembly> LoadAllAssemblies() {
 			string[] dlls = Directory.GetFiles(basePath, "*.dll", SearchOption.TopDirectoryOnly);
 			return dlls.Select(dll => Assembly.LoadFile(dll));
-		}
-
-		public void RunShutdownOperations() {
-			throw new NotImplementedException();
-		}
-
-		public void Save(string fileName, byte[] data) {
-			throw new NotImplementedException();
 		}
 	}
 }

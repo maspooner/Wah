@@ -8,24 +8,24 @@ using System.Windows.Forms;
 using Wah_Interface;
 
 namespace Wah_Core {
-	internal class NewWahMain : NewIWah {
+	internal class WahMain : IWah {
 		private const int TRIGGER_KEY = (int)Keys.OemPeriod;
 
 		private NewFuukoProcessor WahPro { get; set; }
-		private NewWahWindow WahWind { get; set; }
+		private WahWindow WahWind { get; set; }
 
 		public NewIApi Api { get { return WahPro; } }
 		public NewIDisplay Display { get { return WahWind; } }
 
-		private NewWahMain() {
+		private WahMain() {
 			//Get the processor warmed up with the core wah!
 			WahPro = new NewFuukoProcessor(this);
 			//Create the ui with access to the processor
-			WahWind = new NewWahWindow(WahPro);
+			WahWind = new WahWindow(WahPro);
 		}
 
 		static void Main(string[] args) {
-			NewWahMain mainProgram = new NewWahMain();
+			WahMain mainProgram = new WahMain();
 			mainProgram.PreRunOperations();
 
 			mainProgram.Log("Beginning UI loop");

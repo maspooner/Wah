@@ -8,7 +8,7 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Models a parser to turn command line strings into command bundles and command objects
 	/// </summary>
-	public interface NewIParser {
+	public interface IParser {
 		/// <summary>
 		/// Parses the given string into a command that can be run
 		/// </summary>
@@ -21,6 +21,6 @@ namespace Wah_Interface {
 		/// </summary>
 		/// <param name="bun">the string bundle to parse</param>
 		/// <returns>the parsed bundle</returns>
-		NewIBundle ParseBundle(string bun);
+		IBundle ParseBundle(string bun);
 	}
 }

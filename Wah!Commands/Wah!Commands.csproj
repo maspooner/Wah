@@ -42,7 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="NewAkari.cs" />
-    <Compile Include="NewFuko.cs" />
     <Compile Include="Fuko.cs" />
     <Compile Include="Mei.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -9,7 +9,7 @@ namespace Wah_Interface {
 	/// Models a rule for an argument or a flag that must hold true for a Command to validly run.
 	/// </summary>
 	public interface IRule {
-		bool Validate(NewIBundle bun);
+		bool Validate(IBundle bun);
 		string Violation();
 	}
 
@@ -23,7 +23,7 @@ namespace Wah_Interface {
 			this.id = id;
 		}
 
-		public bool Validate(NewIBundle bun) {
+		public bool Validate(IBundle bun) {
 			return bun.HasArgument(id);
 		}
 
@@ -36,14 +36,14 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Models a rule that requires an argument to be of a certain type.
 	/// </summary>
-	public class TypeRule<D> : IRule where D : NewIData {
+	public class TypeRule<D> : IRule where D : IData {
 		private char id;
 
 		public TypeRule(char id) {
 			this.id = id;
 		}
 
-		public bool Validate(NewIBundle bun) {
+		public bool Validate(IBundle bun) {
 			//must have argument and it be the right type or not have the argument altogether
 			return !bun.HasArgument(id) || (bun.HasArgument(id) && bun.Argument(id) is D);
 		}
@@ -66,7 +66,7 @@ namespace Wah_Interface {
 			this.id2 = id2;
 		}
 
-		public bool Validate(NewIBundle bun) {
+		public bool Validate(IBundle bun) {
 			bool h1 = bun.HasArgument(id1);
 			bool h2 = bun.HasArgument(id2);
 			return (h1 && h2) || !(h1 || h2);

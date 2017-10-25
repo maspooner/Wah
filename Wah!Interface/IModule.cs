@@ -9,7 +9,7 @@ namespace Wah_Interface {
 	/// Models a collection of commands that share a similar function and can be easily added or removed from the main
 	/// Wah program.
 	/// </summary>
-	public interface NewIModule {
+	public interface IModule {
 		string Name { get; }
 
 		/// <summary>
@@ -31,7 +31,7 @@ namespace Wah_Interface {
 	/// Models an implementation of a Module with some default commands, ability to load module from a common
 	/// data folder, 
 	/// </summary>
-	public abstract class NewAModule : NewIModule {
+	public abstract class AModule : IModule {
 		public string Name { get; private set; }
 		public string Version { get; private set; }
 		protected NewIDisk Disk { get; private set; }
@@ -39,7 +39,7 @@ namespace Wah_Interface {
 		private ISet<NewICommand> commands;
 		
 
-		public NewAModule(string name, string version) {
+		public AModule(string name, string version) {
 			Name = name;
 			Version = version;
 			Disk = new NewWahDisk(this);
@@ -79,8 +79,8 @@ namespace Wah_Interface {
 		/// <summary>
 		/// A command all modules have: Prints out this module's version
 		/// </summary>
-		private NewStringData Cmd_Version(NewIWah wah, NewIBundle bun) {
-			return new NewStringData(Version, System.Drawing.Color.Aqua);
+		private StringData Cmd_Version(IWah wah, IBundle bun) {
+			return new StringData(Version, System.Drawing.Color.Aqua);
 		}
 
 	}

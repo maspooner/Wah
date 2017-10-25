@@ -10,7 +10,7 @@ namespace Wah_Interface {
 	/// Models the interface between the coders and the core functions of the Wah program. Allows a coder to do tasks
 	/// such as write to the screen, access the hard drive, call native functions, and more.
 	/// </summary>
-	public interface NewIWah {
+	public interface IWah {
 		NewIApi Api { get; }
 		NewIDisplay Display { get; }
 
@@ -37,7 +37,7 @@ namespace Wah_Interface {
 		/// </summary>
 		/// <param name="line">the command to run</param>
 		/// <returns>the result of the run of the command</returns>
-		NewIData Call(string line);
+		IData Call(string line);
 
 		/// <summary>
 		/// Runs the given line of input against the wah command processor as a command and returns the result
@@ -46,7 +46,7 @@ namespace Wah_Interface {
 		/// /// <typeparam name="D">the type of data to ensure is returned</typeparam>
 		/// <param name="line">the command to run</param>
 		/// <returns>the result of the run of the command</returns>
-		D Call<D>(string line) where D : NewIData;
+		D Call<D>(string line) where D : IData;
 
 		/// <summary>
 		/// Waits for the user to enter some input and returns the result.
@@ -59,7 +59,7 @@ namespace Wah_Interface {
 		/// </summary>
 		/// <param name="line">the input to parse</param>
 		/// <returns>the input parsed as IData</returns>
-		NewIData ParseData(string line);
+		IData ParseData(string line);
 	}
 
 	/// <summary>
@@ -102,7 +102,7 @@ namespace Wah_Interface {
 	/// </summary>
 	public interface NewIProcessor {
 		/// <summary>
-		/// 
+		/// Start the processor to accept input
 		/// </summary>
 		void BeginListening();
 
@@ -116,6 +116,25 @@ namespace Wah_Interface {
 		/// Kills the current running process.
 		/// </summary>
 		void InterruptJob();
+
+		/// <summary>
+		/// Load a specific module from the given dll file location
+		/// </summary>
+		/// <param name="dllName">the dll containing the module</param>
+		/// <param name="moduleName">the name of the module to load</param>
+		void LoadModule(string dllName, string moduleName);
+
+		/// <summary>
+		/// Load all modules from the given dll.
+		/// </summary>
+		/// <param name="dllName">the dll containing the modules to load</param>
+		void LoadModuleLibrary(string dllName);
+
+		/// <summary>
+		/// Unloads the module with the given name from the Wah program
+		/// </summary>
+		/// <param name="name">the name of the module to remove</param>
+		void UnloadModule(string name);
 
 	}
 

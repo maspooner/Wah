@@ -8,11 +8,11 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Designed to hold the information a command needs to execute properly
 	/// </summary>
-	public class CommandBundle {
-		public IList<IData> Arguments { get; private set; }
+	public class OldCommandBundle {
+		public IList<OldIData> Arguments { get; private set; }
 		public IDictionary<string, string> Flags { get; private set; }
 
-		public CommandBundle(IList<IData> arguments, IDictionary<string, string> flags) {
+		public OldCommandBundle(IList<OldIData> arguments, IDictionary<string, string> flags) {
 			Arguments = arguments;
 			Flags = flags;
 		}
