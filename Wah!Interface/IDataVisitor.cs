@@ -15,5 +15,6 @@ namespace Wah_Interface {
 		R VisitString(StringData data);
 		R VisitInt(IntData data);
 		R VisitImage(ImageData data);
+		R VisitList(ListData data);
 	}
 }

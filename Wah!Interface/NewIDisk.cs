@@ -53,11 +53,20 @@ namespace Wah_Interface {
 		bool EnsureFile(string file);
 	}
 
+	/// <summary>
+	/// Models the internal, default implementation of a Wah disk
+	/// </summary>
 	internal class NewWahDisk : NewIDisk {
 		private const string BASE_DATA_NAME = "mod-data";
 		private const string MOD_DATA_NAME = "data";
+		private const string MOD_HELP_NAME = "help";
+
+		private const string MAGIC_COLOR = "$!";
+		private const string MAGIC_COLOR_START = ",";
+		private const string MAGIC_COLOR_END = ".";
 		private IModule mod;
 		private string programLocation;
+		private string HelpDir { get { return Path.Combine(DataDir, MOD_HELP_NAME);  } }
 		private string DataDir { get { return Path.Combine(programLocation, BASE_DATA_NAME, MOD_DATA_NAME); } }
 		public string ProgramDirectory { get { return programLocation; } }
 
@@ -75,8 +84,8 @@ namespace Wah_Interface {
 				return File.ReadAllLines(path);
 			}
 			catch (Exception ex) {
-				throw new IOLoadException("Could not read the lines of resource "
-					+ fileName + " for module " + mod.Name, ex);
+				throw new WahIOLoadException("Could not read the lines of resource "
+					+ fileName + " for module " + mod.Name + " Message: " + ex.Message);
 			}
 		}
 
@@ -87,11 +96,11 @@ namespace Wah_Interface {
 					return new Bitmap(path);
 				}
 				catch {
-					throw new IOLoadException("Could not load bitmap from module " + mod.Name + ": " + fileName);
+					throw new WahIOLoadException("Could not load bitmap from module " + mod.Name + ": " + fileName);
 				}
 			}
 			else {
-				throw new IOLoadException("Could not load bitmap from module " + mod.Name + "\'s data folder the resource " + fileName);
+				throw new WahIOLoadException("Could not load bitmap from module " + mod.Name + "\'s data folder the resource " + fileName);
 			}
 		}
 
@@ -124,6 +133,92 @@ namespace Wah_Interface {
 				File.Create(file).Dispose();
 				return true;
 			}
+		}
+
+		/// <summary>
+		/// Attempts to load the specified help file located in the current module.
+		/// If the file exists, it is parsed and displayed to the wah! core's display
+		/// </summary>
+		public void LoadDisplayHelp(IWah wah, string cmd) {
+			//get the full path to the help file
+			string path = Path.Combine(HelpDir, cmd + ".txt");
+			if (File.Exists(path)) {
+				string[] lines = File.ReadAllLines(path);
+				//for each line
+				foreach (string line in lines) {
+					//if the line contains a color command
+					if (line.Contains(MAGIC_COLOR)) {
+						//format the color of the line, starting with gray
+						FormatColor(wah, line, Color.LightGray);
+						//end the line
+						wah.Putln("");
+					}
+					else {
+						//regular line, just print, save the effort
+						wah.Putln(line, Color.LightGray);
+					}
+				}
+			}
+			else {
+				wah.PutErr("No help document found.");
+			}
+		}
+		/// <summary>
+		/// Parsed the line for any color tags, printing the line bit by bit in the right color
+		/// Returns what's left to parse
+		/// </summary>
+		/// <param name="line">what's left of the line to print</param>
+		/// <param name="col">the color for the line</param>
+		/// <returns>what's left of the line to parse</returns>
+		private string FormatColor(IWah wah, string line, Color col) {
+			//while still color to parse
+			while (line.Contains(MAGIC_COLOR)) {
+				//index of the color command
+				int iMagic = line.IndexOf(MAGIC_COLOR);
+				//get the text before the magic
+				string beforeMagic = line.Substring(0, iMagic);
+				//put the text before in the previous color
+				if (beforeMagic.Length > 0) {
+					wah.Put(beforeMagic, col);
+				}
+				//get what's after the magic
+				string afterMagic = line.Substring(iMagic + MAGIC_COLOR.Length);
+				//has stuff after the magic
+				if (afterMagic.Length > 0) {
+					//end tag
+					if (afterMagic.StartsWith(MAGIC_COLOR_END)) {
+						// pass the rest to be parsed with the previous color
+						return afterMagic.Substring(MAGIC_COLOR_END.Length);
+					}
+					//start tag
+					else if (afterMagic.Contains(MAGIC_COLOR_START)) {
+						//the index of the starting tag
+						int iStart = afterMagic.IndexOf(MAGIC_COLOR_START);
+						//read the name of the desired color
+						string colorName = afterMagic.Substring(0, iStart);
+						//illformated color tag
+						if (iStart + 1 >= afterMagic.Length) {
+							throw new HelpParseException("A color flag is impromperly formated.");
+						}
+						else {
+							// format the color of what's after this tag with the new color, and return what's left to parse
+							line = FormatColor(wah, afterMagic.Substring(iStart + 1), System.Drawing.Color.FromName(colorName));
+						}
+					}
+					else {
+						throw new HelpParseException("A color flag is impromperly formated.");
+					}
+				}
+				else {
+					throw new HelpParseException("A color flag is impromperly formated.");
+				}
+			}
+			//print the rest if there is any
+			if (line.Length > 0) {
+				wah.Put(line, col);
+			}
+			//no more left to parse
+			return "";
 		}
 
 	}

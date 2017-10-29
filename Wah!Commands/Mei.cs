@@ -14,11 +14,11 @@ namespace Wah_Commands {
 	public class Mei : AModule {
 		private const string MEI_NO_NAMAE = "mei";
 		private const string MEI_NO_HAN = "Onii alpha 0";
-		public Mei() : base(MEI_NO_NAMAE, MEI_NO_HAN) { }
+		public Mei() : base(MEI_NO_NAMAE, Color.SlateBlue, MEI_NO_HAN) { }
 
 
-		protected override NewICommand[] CreateCommands() {
-			return new NewICommand[] {
+		protected override ICommand[] CreateCommands() {
+			return new ICommand[] {
 				new Cmd_Mkfile()
 			};
 		}
@@ -26,12 +26,11 @@ namespace Wah_Commands {
 		/************************************************
 		***  Commands
 		*************************************************/
-		private OldIData Cmd_Scale(OldICore wah, OldCommandBundle bun) {
+		private IData Cmd_Scale(IWah wah, IBundle bun) {
 			//Usage: mei scale -i=[img-name|dir-name] -o=[out-file|out-dir] -h=300 -w=200
 			//TODO ImageReturn, display automatically image in picture box
-			bun.AssertNoArgs();
-			if (bun.HasFlag("-i")) {
-				string inPath = bun.Flags["-i"];
+			if (bun.HasArgument('i')) {
+				string inPath = bun.Argument<StringData>('i').Data;
 				bool inFile = File.Exists(inPath);
 				bool inDir = Directory.Exists(inPath);
 				//does not exist
@@ -42,19 +41,19 @@ namespace Wah_Commands {
 				else {
 					try {
 						if (inFile) {
-							string outPath = bun.HasFlag("-o") ? bun.Flags["-o"] :
+							string outPath = bun.HasArgument('o') ? bun.Argument('o').ToString() :
 								Path.Combine(Path.GetDirectoryName(inPath),
 								Path.GetFileNameWithoutExtension(inPath) + "_scaled.png");
 							return Scale_ScaleOne(outPath);
 						}
 						else {
-							string outPath = bun.HasFlag("-o") ? bun.Flags["-o"] :
+							string outPath = bun.HasArgument('o') ? bun.Argument('o').ToString() :
 								Path.Combine(inPath, "scaled");
-							IList<OldIData> bits = new List<OldIData>();
+							IList<IData> bits = new List<IData>();
 							foreach (string f in Directory.EnumerateFiles(outPath)) {
 								bits.Add(Scale_ScaleOne(f));
 							}
-							return new OldListData(bits);
+							return new ListData(bits);
 						}
 					}
 					catch {
@@ -67,36 +66,42 @@ namespace Wah_Commands {
 			}
 		}
 
-		private OldIData Scale_ScaleOne(string filePath) {
-			return new OldNoData();
-		}
-
-		private OldIData Cmd_Chop(OldICore wah, OldCommandBundle bun) {
-			//Usage: mei chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200
-			return new OldNoData();
+		private ImageData Scale_ScaleOne(string filePath) {
+			return new ImageData(new Bitmap(300, 300));
 		}
 	}
 
+	//TODO tuneup
 	internal class Cmd_Mkfile : CheckedCommand<NoData>, IDataVisitor<IData> {
 		private string filePath;
+		private IWah wah;
+		private IBundle bun;
 		public Cmd_Mkfile() : base("mkfile",
 			//Rules
 			new RequireRule('w'),
-			new RequireRule('f')) {
+			new RequireRule('f'),
+			new TypeRule<StringData>('f')) {
 			filePath = null;
 		}
 
-		public override NoData Apply(IWah wah, IBundle bun) {
-			filePath = bun.Argument<StringData>('f').Data;
-			if (bun.HasFlag("force") || !File.Exists(filePath)) {
+		private IData WriteFile(string toPath, IData data, IWah wah, IBundle bun) {
+			this.wah = wah;
+			this.bun = bun;
+			filePath = toPath;
+			if (bun.HasFlag("force") || !File.Exists(toPath)) {
 				// visit with this visitor to find out how to make a file
-				bun.Argument('w').Accept(this);
+				data.Accept(this);
 			}
 			else {
 				wah.Putln("File cannot be found or file already exists. To force overriding an existing file,"
 					+ " use the -force flag", Color.Crimson);
 
 			}
+			return data;
+		}
+
+		public override NoData Apply(IWah wah, IBundle bun) {
+			WriteFile(bun.Argument<StringData>('f').Data, bun.Argument('w'), wah, bun);
 			return new NoData();
 		}
 
@@ -105,22 +110,30 @@ namespace Wah_Commands {
 		}
 
 		public IData VisitImage(ImageData data) {
-			data.Data.Save(filePath);
+			data.Data.Save(filePath + ".png");
 			return data;
 		}
 
 		public IData VisitInt(IntData data) {
-			File.WriteAllText(filePath, data.Data.ToString());
+			File.WriteAllText(filePath + ".txt", data.Data.ToString());
 			return data;
 		}
 
 		public IData VisitNone(NoData data) {
-			File.WriteAllText(filePath, "");
+			File.WriteAllText(filePath + ".txt", "");
 			return data;
 		}
 
 		public IData VisitString(StringData data) {
-			File.WriteAllText(filePath, data.Data);
+			File.WriteAllText(filePath + ".txt", data.Data);
+			return data;
+		}
+
+		public IData VisitList(ListData data) {
+			//don't know what to call the items, just give generic names
+			foreach(IData d in data.Data) {
+				WriteFile(Path.Combine(filePath, d.ToString()), d, wah, bun);
+			}
 			return data;
 		}
 	}

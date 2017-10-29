@@ -8,3 +8,10 @@ Core Features:
  - Macros: certain strings can be expanded into longer string forms to save typing
  - Paste from clipboard: interpret clipboard data into IData and use it on the commandline as an argument
  - Settings: each module can have its own settings, set within core module's wrapper set method, or in each module's inherited set command (ex: Wah.set k=akari.download v=URL or akari.set k=download v=URL); try to load settings from file, if fail or settings out of date, run InitSettings()
+
+New commands:
+ - update module: reloads the given module and prints to the screen the change in version and time since last update
+ - settings: have commands named wah.settings.add and wah.settings.set and wah.settings.remove
+ - mei...
+    - mei.chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200 for images
+ - restart: soft or hard

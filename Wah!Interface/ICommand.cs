@@ -9,7 +9,7 @@ namespace Wah_Interface {
 	/// Models a function that takes in arguments from the user, and performs a specific action
 	/// with those arguments to return a result.
 	/// </summary>
-	public interface NewICommand {
+	public interface ICommand {
 		string Name { get; }
 		/// <summary>
 		/// If this command is given the command bundle, will it be able to function properly?
@@ -42,7 +42,7 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Models an abstract command with a name and default implementation of some common methods.
 	/// </summary>
-	public abstract class ACommand : NewICommand {
+	public abstract class ACommand : ICommand {
 		public string Name { get; private set; }
 
 		internal ACommand(string name) {
@@ -60,7 +60,7 @@ namespace Wah_Interface {
 			}
 			else {
 				//wrong type, throw exception
-				throw new WahWrongTypesException();
+				throw new WahWrongTypesException(typeof(D), run);
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Models a Command that does not validate any arguments or flags or return value.
 	/// </summary>
-	public sealed class UncheckedCommand : ACommand {
+	public class UncheckedCommand : ACommand {
 		
 		private Func<IWah, IBundle, IData> commandBody;
 
@@ -150,15 +150,29 @@ namespace Wah_Interface {
 				return data;
 			}
 			else {
-				throw new WahWrongTypesException();
+				throw new WahWrongTypesException(typeof(D), data);
 			}
 		}
 
 		public abstract D Apply(IWah wah, IBundle bun);
 	}
 
+	/// <summary>
+	/// Models a command that does not accept any arguments or flags
+	/// </summary>
+	public class PlainCommand : UncheckedCommand {
+		public PlainCommand(string name, Func<IWah, IBundle, IData> commandBody) : base(name, commandBody) {}
 
+		public override bool Validate(IBundle bun) {
+			return bun.Empty();
+		}
 
+		public override string LastError() {
+			return "The command " + Name + " does not accept any arguments or flags";
+		}
+	}
+
+	//TODO remove
 	public class SysCommand_Test : CheckedCommand<StringData> {
 		public SysCommand_Test() : base("test",
 			//Rules

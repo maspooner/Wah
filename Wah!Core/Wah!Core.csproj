@@ -46,11 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GlobalHotKeys.cs" />
-    <Compile Include="NewFuuko.cs" />
+    <Compile Include="NewSystemCommands.cs" />
     <Compile Include="NewWahProcessor.cs" />
     <Compile Include="WahMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SystemCommands.cs" />
     <Compile Include="WahDisk.cs" />
     <Compile Include="WahProcessing.cs" />
     <Compile Include="OldWahSettings.cs" />

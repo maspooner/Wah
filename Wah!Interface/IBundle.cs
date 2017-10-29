@@ -35,6 +35,12 @@ namespace Wah_Interface {
 		/// <typeparam name="D">the type of IData</typeparam>
 		/// <param name="id">the id of the argument to return</param>
 	    D Argument<D>(char id) where D : IData;
+
+		/// <summary>
+		/// Does this bundle have no arguments or flags?
+		/// </summary>
+		/// <returns></returns>
+		bool Empty();
 	}
 
 
@@ -74,8 +80,12 @@ namespace Wah_Interface {
 				return (D)data;
 			}
 			else {
-				throw new WahWrongTypesException();
+				throw new WahWrongTypesException(typeof(D), data);
 			}
+		}
+
+		public bool Empty() {
+			return arguments.Count == 0 && flags.Count == 0;
 		}
 		
 	}

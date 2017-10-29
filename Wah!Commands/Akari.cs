@@ -4,16 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wah_Interface;
+using System.Drawing;
 
 namespace Wah_Commands {
+	/// <summary>
+	/// Akari handles ecchi
+	/// </summary>
 	public class Akari : AModule {
 		private const string AKARI_NO_NAMAE = "akari";
 		private const string AKARI_NO_HAN = "Pomf alpha 0";
 		
-		public Akari() : base(AKARI_NO_NAMAE, AKARI_NO_HAN) { }
+		public Akari() : base(AKARI_NO_NAMAE, Color.Crimson, AKARI_NO_HAN) { }
 
-		protected override NewICommand[] CreateCommands() {
-			return new NewICommand[] {
+		protected override ICommand[] CreateCommands() {
+			return new ICommand[] {
 				//new SimpleCommand(ListServices));
 				//Commands.Add(new AkariDownloadCmd()
 			};

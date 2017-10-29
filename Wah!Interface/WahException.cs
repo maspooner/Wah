@@ -12,7 +12,7 @@ namespace Wah_Interface {
 		public AWahException(string message, Exception innerException) : base(message, innerException) {
 
 		}
-		public void OutputError(OldICore wah) {
+		public void OutputError(IWah wah) {
 			if (!IsThreadAbort()) {
 				wah.PutErr(GetMessages());
 			}
@@ -39,66 +39,4 @@ namespace Wah_Interface {
 			}
 		}
 	}
-	internal class NoReturnException : AWahException {
-		public NoReturnException() : base("Attempted to use the value of a call to a command with no return value") {
-
-		}
-	}
-	public class NoSuchItemException : AWahException {
-		public NoSuchItemException(string message) : base(message) {
-
-		}
-	}
-	public class WrongDataTypeException : AWahException {
-		public WrongDataTypeException(string message) : base(message) {
-
-		}
-	}
-	public class IllformedInputException : AWahException {
-		public IllformedInputException(string message) : base(message) {
-
-		}
-	}
-	public class WrongNumberArgumentsException : IllformedInputException {
-		public WrongNumberArgumentsException() : this("Wrong number of arguments") {
-
-		}
-		public WrongNumberArgumentsException(string message) : base(message) {
-
-		}
-	}
-	public class IOLoadException : AWahException {
-		public IOLoadException(string message) : base(message) {
-
-		}
-		public IOLoadException(string message, Exception inner) : base(message, inner) {
-
-		}
-	}
-	public class HelpParseException : AWahException {
-		public HelpParseException(string message) : base(message) {
-
-		}
-	}
-	public class InvalidStateException : AWahException {
-		public InvalidStateException(string message) : base(message) {
-
-		}
-	}
-
-
-	//Chain exceptions
-	public class CallFailedException : AWahException {
-		public CallFailedException(string message, AWahException innerException) 
-			: base(message, innerException) {
-
-		}
-	}
-	public class UnhandledException : AWahException {
-		public UnhandledException(string message, Exception innerException) 
-			: base(message, innerException) {
-
-		}
-	}
-
 }

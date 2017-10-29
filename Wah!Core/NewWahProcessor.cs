@@ -13,12 +13,13 @@ namespace Wah_Core {
 	/// <summary>
 	/// The part of the wah processing that handles all procesing and parsing of user input
 	/// </summary>
-	internal partial class NewFuukoProcessor : NewIProcessor, IParser, NewIApi {
+	internal partial class NewWahProcessor : NewIProcessor, IParser, NewIApi {
 		private const char MODULE_DELIM = '.'; //Separates modules from commands
+		private const string PREVIOUS_OUTPUT_MARKER = "<>"; //Marks the user wanting to use the output of the last command
 
 		private char[] moduleDelimCache; // prevents creating array each time string[].Split is needed
 		private ISet<IModule> modules;
-		private NewOutputVisitor outputVisit;
+		private OutputVisitor outputVisit;
 		private object objLock;
 		private string primedCmd;
 		private Thread workerThread;
@@ -27,8 +28,9 @@ namespace Wah_Core {
 		private IData lastOutput;
 		private string programDir;
 
-		internal NewFuukoProcessor(WahMain coreWah) : base(FUUKO_NO_NAMAE, FUUKO_NO_HAN) {
+		internal NewWahProcessor(WahMain coreWah) : base(WAH_NO_NAMAE, Color.LightGray, WAH_NO_HAN) {
 			modules = new HashSet<IModule>();
+			//add the system module (this)
 			modules.Add(this);
 			moduleDelimCache = new char[] { MODULE_DELIM };
 			objLock = new object();
@@ -36,7 +38,7 @@ namespace Wah_Core {
 			this.coreWah = coreWah;
 			isDone = false;
 			lastOutput = new NoData();
-			outputVisit = new NewOutputVisitor(coreWah);
+			outputVisit = new OutputVisitor(coreWah);
 
 			workerThread = new Thread(RunCommandLoop);
 			LoadModule("Wah!Commands", "fuuko");
@@ -83,7 +85,13 @@ namespace Wah_Core {
 			}
 			//top level exception handling
 			catch(WahUserException wue) {
-				coreWah.PutErr(wue.Message);
+				//user fault
+				wue.DisplayOn(coreWah);
+			}
+			catch(NewAWahException awe) {
+				//coder fault
+				coreWah.PutErr("A module returned an error:");
+				awe.DisplayOn(coreWah);
 			}
 			catch (Exception ex) {
 				coreWah.PutErr("Fatal Wah! Error");
@@ -174,13 +182,24 @@ namespace Wah_Core {
 		}
 
 		public IData ParseData(string line) {
-			return new NoData();
+			line = line.Trim();
+			//use previous return value
+			if(line.Equals(PREVIOUS_OUTPUT_MARKER)) {
+				return lastOutput;
+			}
+			int iParse = 0;
+			//int
+			if(int.TryParse(line, out iParse)) {
+				return new IntData(iParse);
+			}
+			//TODO parse list, etc.
+			return new StringData(line);
 		}
 
 		////////////////////////////////////////////////////////
 		// IParser methods
 		////////////////////////////////////////////////////////
-		public NewICommand ParseCommand(string cmd) {
+		public ICommand ParseCommand(string cmd) {
 			cmd = cmd.Trim();
 			if(cmd.Contains(MODULE_DELIM)) {
 				//must be within a specific module
@@ -246,10 +265,10 @@ namespace Wah_Core {
 	/// <summary>
 	/// Models a visitor for IData that can display any type of IData.
 	/// </summary>
-	public class NewOutputVisitor : IDataVisitor<IData> {
+	public class OutputVisitor : IDataVisitor<IData> {
 		private IWah wah;
 
-		public NewOutputVisitor(IWah wah) {
+		public OutputVisitor(IWah wah) {
 			this.wah = wah;
 		}
 
@@ -274,6 +293,13 @@ namespace Wah_Core {
 
 		public IData VisitString(StringData data) {
 			wah.Putln(data.Data, data.Color);
+			return data;
+		}
+
+		public IData VisitList(ListData data) {
+			foreach(IData d in data.Data) {
+				Visit(d);
+			}
 			return data;
 		}
 	}

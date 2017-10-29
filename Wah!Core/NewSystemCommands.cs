@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,20 +11,32 @@ namespace Wah_Core {
 	/// <summary>
 	/// The part of the wah processing that acts as a SYSTEM module with more access to the internals of the unit.
 	/// </summary>
-	internal partial class NewFuukoProcessor : AModule {
-		private const string FUUKO_NO_NAMAE = "wah";
-		private const string FUUKO_NO_HAN = "Hitode alpha 0 or Nya alpha 0";
+	internal partial class NewWahProcessor : AModule {
+		private const string WAH_NO_NAMAE = "wah";
+		private const string WAH_NO_HAN = "Ichi alpha 0";
 
-		protected override NewICommand[] CreateCommands() {
-			return new NewICommand[] {
-				new UncheckedCommand("clear", Cmd_Clear),
-				new UncheckedCommand("c", Cmd_Close),
-				new UncheckedCommand("exit", Cmd_Exit),
+		protected override ICommand[] CreateCommands() {
+			return new ICommand[] {
+				new PlainCommand("modlist", Cmd_Modlist),
+				new PlainCommand("clear", Cmd_Clear),
+				new PlainCommand("c", Cmd_Close),
+				new PlainCommand("exit", Cmd_Exit),
 				//Temp commands
-				new UncheckedCommand("chn1", Cmd_Chain1),
-				new UncheckedCommand("chn1", Cmd_Chain2),
-				new UncheckedCommand("chn1", Cmd_Chain3),
+				new PlainCommand("wah!", Cmd_Wah),
+				new PlainCommand("wah?", Cmd_WahHuh),
+				new PlainCommand("chn1", Cmd_Chain1),
+				new PlainCommand("chn2", Cmd_Chain2),
+				new PlainCommand("chn3", Cmd_Chain3),
 			};
+		}
+
+		// Lists all loaded modules
+		private NoData Cmd_Modlist(IWah wah, IBundle bun) {
+			wah.Putln("Loaded modules: ", Color.Gold);
+			foreach(IModule mod in modules) {
+				wah.Putln(mod.Name, mod.Color);
+			}
+			return new NoData();
 		}
 
 		// Clears the window
@@ -44,6 +57,18 @@ namespace Wah_Core {
 			isDone = true;
 			coreWah.Shutdown();
 			return new NoData();
+		}
+
+
+		//test commands
+
+		private StringData Cmd_Wah(IWah wah, IBundle bun) {
+			return new StringData("Wah!");
+		}
+
+		private StringData Cmd_WahHuh(IWah wah, IBundle bun) {
+			wah.Putln("Wah?", Color.Yellow);
+			return GetCommand("wah!").Run<StringData>(wah, bun);
 		}
 
 

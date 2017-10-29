@@ -14,7 +14,7 @@ namespace Wah_Interface {
 		/// </summary>
 		/// <param name="cmd">the string command to parse</param>
 		/// <returns>the command object</returns>
-		NewICommand ParseCommand(string cmd);
+		ICommand ParseCommand(string cmd);
 
 		/// <summary>
 		/// Parses the given string into a command bundle.
