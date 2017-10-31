@@ -13,12 +13,11 @@ namespace Wah_Core {
 	/// <summary>
 	/// The part of the wah processing that handles all procesing and parsing of user input
 	/// </summary>
-	internal partial class NewWahProcessor : NewIProcessor, IParser, NewIApi {
-		private const char MODULE_DELIM = '.'; //Separates modules from commands
-		private const string PREVIOUS_OUTPUT_MARKER = "<>"; //Marks the user wanting to use the output of the last command
+	internal partial class WahProcessor : IProcessor, NewIApi {
 
 		private char[] moduleDelimCache; // prevents creating array each time string[].Split is needed
 		private ISet<IModule> modules;
+		private IDictionary<string, string> macros;
 		private OutputVisitor outputVisit;
 		private object objLock;
 		private string primedCmd;
@@ -26,12 +25,12 @@ namespace Wah_Core {
 		private bool isDone;
 		private WahMain coreWah;
 		private IData lastOutput;
-		private string programDir;
 
-		internal NewWahProcessor(WahMain coreWah) : base(WAH_NO_NAMAE, Color.LightGray, WAH_NO_HAN) {
+		internal WahProcessor(WahMain coreWah) : base(WAH_NO_NAMAE, Color.LightGray, WAH_NO_HAN) {
 			modules = new HashSet<IModule>();
 			//add the system module (this)
 			modules.Add(this);
+			macros = new Dictionary<string, string>();
 			moduleDelimCache = new char[] { MODULE_DELIM };
 			objLock = new object();
 			primedCmd = "";
@@ -41,7 +40,10 @@ namespace Wah_Core {
 			outputVisit = new OutputVisitor(coreWah);
 
 			workerThread = new Thread(RunCommandLoop);
-			LoadModule("Wah!Commands", "fuuko");
+			//temp
+			//LoadModule("Wah!Commands", "fuuko");
+			macros.Add("home", "/f/");
+			//settings.user.name = Matt (default is machine user name)
 		}
 
 		/// <summary>
@@ -60,7 +62,7 @@ namespace Wah_Core {
 			while (!isDone) {
 				coreWah.Put("[custom-name]", Color.Yellow);
 				coreWah.Put("@", Color.YellowGreen);
-				coreWah.Put("[computer-name] ", Color.Cyan);
+				coreWah.Put(Environment.MachineName, Color.Cyan);
 				coreWah.Putln(" Wah!~", Color.Magenta);
 				//wait for input
 				lock (objLock) {
@@ -78,8 +80,8 @@ namespace Wah_Core {
 		private void Execute() {
 			try {
 				coreWah.Putln("> " + primedCmd);
-				//call and save as the last output
-				lastOutput = Call(primedCmd);
+				//call and save as the last output, expanding macros in the process
+				lastOutput = Call(ExpandMacros(primedCmd));
 				//show the result on screen
 				lastOutput.Accept(outputVisit);
 			}
@@ -97,6 +99,22 @@ namespace Wah_Core {
 				coreWah.PutErr("Fatal Wah! Error");
 				coreWah.PutErr(ex.Message);
 				coreWah.PutErr(ex.StackTrace);
+			}
+		}
+
+		////////////////////////////////////////////////////////
+		//Internal methods
+		////////////////////////////////////////////////////////
+		internal void SetMacro(string from, string to) {
+			macros.Add(from, to);
+		}
+
+		internal void RemoveMacro(string key) {
+			if (macros.ContainsKey(key)) {
+				macros.Remove(key);
+			}
+			else {
+				throw new WahMissingInfoException(key + " macro does not exist");
 			}
 		}
 
@@ -196,70 +214,6 @@ namespace Wah_Core {
 			return new StringData(line);
 		}
 
-		////////////////////////////////////////////////////////
-		// IParser methods
-		////////////////////////////////////////////////////////
-		public ICommand ParseCommand(string cmd) {
-			cmd = cmd.Trim();
-			if(cmd.Contains(MODULE_DELIM)) {
-				//must be within a specific module
-				string[] pieces = cmd.Split(moduleDelimCache, StringSplitOptions.RemoveEmptyEntries);
-				if(pieces.Length == 2) {
-					string mod = pieces[0];
-					cmd = pieces[1];
-					if(ModuleLoaded(mod)) {
-						IModule module = FindModule(mod);
-						if(module.HasCommand(cmd)) {
-							return module.GetCommand(cmd);
-						}
-						else {
-							//user error: command does not exist
-							throw new WahNoCommandException(cmd);
-						}
-					}
-					else {
-						//user error: module not loaded or does not exist
-						throw new WahNoModuleException(mod);
-					}
-				}
-				else {
-					//user error: too many dots in module name
-					throw new WahBadFormatException(pieces[0]);
-				}
-			}
-			else {
-				//can be in any module
-				//how many times does the command appear accross all modules?
-				int shareName = modules.Count(mod => mod.HasCommand(cmd));
-				if(shareName == 0) {
-					//no such command, user error
-					throw new WahNoCommandException(cmd);
-				}
-				else if(shareName == 1) {
-					//know exactly which module to run
-					IModule module = modules.First(mod => mod.HasCommand(cmd));
-					if(module.HasCommand(cmd)) {
-						return module.GetCommand(cmd);
-					}
-					else {
-						//user error: command does not exist
-						throw new WahNoCommandException(cmd);
-					}
-				}
-				else {
-					//too many, don't know which one the user wants to run
-					throw new WahAmbiguousCommandException();
-				}
-			}
-		}
-
-		public IBundle ParseBundle(string bun) {
-			ISet<string> flags = new HashSet<string>();
-			IDictionary<char, IData> arguments = new Dictionary<char, IData>();
-			return new CommandBundle(flags, arguments);
-		}
-
-		
 	}
 
 	/// <summary>
@@ -278,13 +232,12 @@ namespace Wah_Core {
 
 		public IData VisitImage(ImageData data) {
 			wah.Putln(data.ToString(), Color.Aquamarine);
-			wah.Display.ShowVisual(new SimpleImage(data.Data), 1);
+			wah.Display.ShowVisual(new SimpleImage(data.Image), 1);
 			return data;
 		}
 
 		public IData VisitInt(IntData data) {
-			wah.Putln(data.ToString(), Color.OrangeRed);
-			return data;
+			return VisitString(data);
 		}
 
 		public IData VisitNone(NoData data) {
@@ -292,12 +245,12 @@ namespace Wah_Core {
 		}
 
 		public IData VisitString(StringData data) {
-			wah.Putln(data.Data, data.Color);
+			wah.Putln(data.String, data.Color);
 			return data;
 		}
 
 		public IData VisitList(ListData data) {
-			foreach(IData d in data.Data) {
+			foreach(IData d in data.List) {
 				Visit(d);
 			}
 			return data;

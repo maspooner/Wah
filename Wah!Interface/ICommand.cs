@@ -183,10 +183,10 @@ namespace Wah_Interface {
 			new CorequireRule('s', 'e')) {}
 
 		public override StringData Apply(IWah wah, IBundle bun) {
-			string m = bun.Argument<StringData>('m').Data;
+			string m = bun.Argument<StringData>('m').String;
 			if (bun.HasArgument('s')) {
-				string s = bun.Argument<StringData>('s').Data;
-				string e = bun.Argument<StringData>('e').Data;
+				string s = bun.Argument<StringData>('s').String;
+				string e = bun.Argument<StringData>('e').String;
 				return new StringData(s + m + e);
 			}
 			else {
@@ -204,8 +204,8 @@ namespace Wah_Interface {
 			new CorequireRule('w', 'h')) { }
 
 		public override ImageData Apply(IWah wah, IBundle bun) {
-			return new ImageData(new System.Drawing.Bitmap(bun.Argument<IntData>('w').Data, 
-				bun.Argument<IntData>('h').Data));
+			return new ImageData(new System.Drawing.Bitmap(bun.Argument<IntData>('w').Int, 
+				bun.Argument<IntData>('h').Int));
 		}
 	}
 

@@ -30,12 +30,12 @@ namespace Wah_Commands {
 			//Usage: mei scale -i=[img-name|dir-name] -o=[out-file|out-dir] -h=300 -w=200
 			//TODO ImageReturn, display automatically image in picture box
 			if (bun.HasArgument('i')) {
-				string inPath = bun.Argument<StringData>('i').Data;
+				string inPath = bun.Argument<StringData>('i').String;
 				bool inFile = File.Exists(inPath);
 				bool inDir = Directory.Exists(inPath);
 				//does not exist
 				if (!(inFile || inDir)) {
-					throw new IllformedInputException(
+					throw new WahBadFormatException(
 						"Could not find the input bitmap path specified: " + inPath);
 				}
 				else {
@@ -57,12 +57,12 @@ namespace Wah_Commands {
 						}
 					}
 					catch {
-						throw new IOLoadException("Could not find specified bitmap image");
+						throw new WahIOLoadException("Could not find specified bitmap image");
 					}
 				}
 			}
 			else {
-				throw new IllformedInputException("scale must take a flag -i for the input path");
+				throw new WahBadFormatException("scale must take a flag -i for the input path");
 			}
 		}
 
@@ -101,7 +101,7 @@ namespace Wah_Commands {
 		}
 
 		public override NoData Apply(IWah wah, IBundle bun) {
-			WriteFile(bun.Argument<StringData>('f').Data, bun.Argument('w'), wah, bun);
+			WriteFile(bun.Argument<StringData>('f').String, bun.Argument('w'), wah, bun);
 			return new NoData();
 		}
 
@@ -110,12 +110,12 @@ namespace Wah_Commands {
 		}
 
 		public IData VisitImage(ImageData data) {
-			data.Data.Save(filePath + ".png");
+			data.Image.Save(filePath + ".png");
 			return data;
 		}
 
 		public IData VisitInt(IntData data) {
-			File.WriteAllText(filePath + ".txt", data.Data.ToString());
+			File.WriteAllText(filePath + ".txt", data.Int.ToString());
 			return data;
 		}
 
@@ -125,13 +125,13 @@ namespace Wah_Commands {
 		}
 
 		public IData VisitString(StringData data) {
-			File.WriteAllText(filePath + ".txt", data.Data);
+			File.WriteAllText(filePath + ".txt", data.String);
 			return data;
 		}
 
 		public IData VisitList(ListData data) {
 			//don't know what to call the items, just give generic names
-			foreach(IData d in data.Data) {
+			foreach(IData d in data.List) {
 				WriteFile(Path.Combine(filePath, d.ToString()), d, wah, bun);
 			}
 			return data;

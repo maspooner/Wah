@@ -8,55 +8,9 @@ using System.Threading.Tasks;
 
 namespace Wah_Interface {
 	/// <summary>
-	/// Represents an interface with a specific Module's file system, including operations like opening and saving files.
-	/// </summary>
-	public interface NewIDisk {
-		/// <summary>
-		/// Gets the operating directory of the Wah program
-		/// </summary>
-		string ProgramDirectory { get; }
-
-		/// <summary>
-		/// Loads an image with the given file name from the data folder of the module
-		/// </summary>
-		/// <param name="fileName">the name of just the image file (name + extension)</param>
-		/// <returns>a bitmap of the file</returns>
-		Bitmap LoadImage(string fileName);
-
-		/// <summary>
-		/// Loads an entire directory of images in topological order
-		/// </summary>
-		/// <param name="dirName"></param>
-		/// <param name="ext">the extension of files to look for</param>
-		/// <returns>the list of images loaded</returns>
-		Bitmap[] LoadImageDir(string dirName, string ext);
-
-		/// <summary>
-		/// Loads a list of lines of a text file
-		/// </summary>
-		/// <param name="fileName">the name of the text file</param>
-		/// <returns>the lines of text</returns>
-		string[] LoadLines(string fileName);
-
-		/// <summary>
-		/// Ensures that the given path starting from the program directory exists
-		/// </summary>
-		/// <param name="path">the directory to check</param>
-		/// <returns>true if path had to be created</returns>
-		bool EnsurePath(string path);
-
-		/// <summary>
-		/// Ensures that the given file exists
-		/// </summary>
-		/// <param name="file">the file to check</param>
-		/// <returns>true if file had to be created</returns>
-		bool EnsureFile(string file);
-	}
-
-	/// <summary>
 	/// Models the internal, default implementation of a Wah disk
 	/// </summary>
-	internal class NewWahDisk : NewIDisk {
+	internal class Disk : IDisk {
 		private const string BASE_DATA_NAME = "mod-data";
 		private const string MOD_DATA_NAME = "data";
 		private const string MOD_HELP_NAME = "help";
@@ -66,13 +20,13 @@ namespace Wah_Interface {
 		private const string MAGIC_COLOR_END = ".";
 		private IModule mod;
 		private string programLocation;
-		private string HelpDir { get { return Path.Combine(DataDir, MOD_HELP_NAME);  } }
+		private string HelpDir { get { return Path.Combine(DataDir, MOD_HELP_NAME); } }
 		private string DataDir { get { return Path.Combine(programLocation, BASE_DATA_NAME, MOD_DATA_NAME); } }
 		public string ProgramDirectory { get { return programLocation; } }
 
-		internal NewWahDisk(IModule mod) {
+		internal Disk(IModule mod) {
 			this.mod = mod;
-			programLocation = 
+			programLocation =
 				Path.GetDirectoryName(new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath);
 			//make sure path to data exisits
 			EnsurePath(DataDir);
@@ -115,7 +69,7 @@ namespace Wah_Interface {
 		}
 
 		public bool EnsurePath(string path) {
-			if(!Directory.Exists(path)) {
+			if (!Directory.Exists(path)) {
 				Directory.CreateDirectory(path);
 				return true;
 			}
@@ -135,13 +89,9 @@ namespace Wah_Interface {
 			}
 		}
 
-		/// <summary>
-		/// Attempts to load the specified help file located in the current module.
-		/// If the file exists, it is parsed and displayed to the wah! core's display
-		/// </summary>
-		public void LoadDisplayHelp(IWah wah, string cmd) {
+		public void LoadDisplayHelp(IWah wah, string topic) {
 			//get the full path to the help file
-			string path = Path.Combine(HelpDir, cmd + ".txt");
+			string path = Path.Combine(HelpDir, topic + ".txt");
 			if (File.Exists(path)) {
 				string[] lines = File.ReadAllLines(path);
 				//for each line
@@ -163,6 +113,9 @@ namespace Wah_Interface {
 				wah.PutErr("No help document found.");
 			}
 		}
+
+		
+
 		/// <summary>
 		/// Parsed the line for any color tags, printing the line bit by bit in the right color
 		/// Returns what's left to parse
@@ -198,19 +151,19 @@ namespace Wah_Interface {
 						string colorName = afterMagic.Substring(0, iStart);
 						//illformated color tag
 						if (iStart + 1 >= afterMagic.Length) {
-							throw new HelpParseException("A color flag is impromperly formated.");
+							throw new WahHelpParseException("A color flag is impromperly formated.");
 						}
 						else {
 							// format the color of what's after this tag with the new color, and return what's left to parse
-							line = FormatColor(wah, afterMagic.Substring(iStart + 1), System.Drawing.Color.FromName(colorName));
+							line = FormatColor(wah, afterMagic.Substring(iStart + 1), Color.FromName(colorName));
 						}
 					}
 					else {
-						throw new HelpParseException("A color flag is impromperly formated.");
+						throw new WahHelpParseException("A color flag is impromperly formated.");
 					}
 				}
 				else {
-					throw new HelpParseException("A color flag is impromperly formated.");
+					throw new WahHelpParseException("A color flag is impromperly formated.");
 				}
 			}
 			//print the rest if there is any

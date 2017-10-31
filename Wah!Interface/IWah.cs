@@ -100,7 +100,7 @@ namespace Wah_Interface {
 	/// Models the interface between other components of Wah with the main command processor that
 	/// should not be exposed to the coder.
 	/// </summary>
-	public interface NewIProcessor {
+	public interface IProcessor {
 		/// <summary>
 		/// Start the processor to accept input
 		/// </summary>
@@ -136,6 +136,86 @@ namespace Wah_Interface {
 		/// <param name="name">the name of the module to remove</param>
 		void UnloadModule(string name);
 
+	}
+
+
+
+
+
+	/// <summary>
+	/// Models a collection of commands that share a similar function and can be easily added or removed from the main
+	/// Wah program.
+	/// </summary>
+	public interface IModule {
+		string Name { get; }
+		Color Color { get; }
+
+		/// <summary>
+		/// Does this module contain a command with the given name?
+		/// </summary>
+		/// <param name="cmd">the name of the command</param>
+		bool HasCommand(string cmd);
+
+		/// <summary>
+		/// Retrieves the command with the given name that is in this module.
+		/// </summary>
+		/// <param name="cmd">the string command name</param>
+		/// <returns>the command</returns>
+		ICommand GetCommand(string cmd);
+
+	}
+
+	/// <summary>
+	/// Represents an interface with a specific Module's file system, including operations like opening and saving files.
+	/// </summary>
+	public interface IDisk {
+		/// <summary>
+		/// Gets the operating directory of the Wah program
+		/// </summary>
+		string ProgramDirectory { get; }
+
+		/// <summary>
+		/// Loads an image with the given file name from the data folder of the module
+		/// </summary>
+		/// <param name="fileName">the name of just the image file (name + extension)</param>
+		/// <returns>a bitmap of the file</returns>
+		Bitmap LoadImage(string fileName);
+
+		/// <summary>
+		/// Loads an entire directory of images in topological order
+		/// </summary>
+		/// <param name="dirName"></param>
+		/// <param name="ext">the extension of files to look for</param>
+		/// <returns>the list of images loaded</returns>
+		Bitmap[] LoadImageDir(string dirName, string ext);
+
+		/// <summary>
+		/// Loads a list of lines of a text file
+		/// </summary>
+		/// <param name="fileName">the name of the text file</param>
+		/// <returns>the lines of text</returns>
+		string[] LoadLines(string fileName);
+
+		/// <summary>
+		/// Attempts to load help information about the given topic and 
+		/// parse and display to the wah! core's display
+		/// </summary>
+		/// <param name="topic">the topic of the help file to load</param>
+		void LoadDisplayHelp(IWah wah, string topic);
+
+		/// <summary>
+		/// Ensures that the given path starting from the program directory exists
+		/// </summary>
+		/// <param name="path">the directory to check</param>
+		/// <returns>true if path had to be created</returns>
+		bool EnsurePath(string path);
+
+		/// <summary>
+		/// Ensures that the given file exists
+		/// </summary>
+		/// <param name="file">the file to check</param>
+		/// <returns>true if file had to be created</returns>
+		bool EnsureFile(string file);
 	}
 
 }

@@ -15,6 +15,20 @@ namespace Wah_Interface {
 	////////////////////////////////////////////////////////
 	//CODER FAULTS
 	////////////////////////////////////////////////////////
+
+	/// <summary>
+	/// Models an exception that occurs when a resource a coder is trying to load cannot be loaded
+	/// </summary>
+	public class WahHelpParseException : NewAWahException {
+		private string message;
+		public WahHelpParseException(string message) {
+			this.message = message;
+		}
+		public override void DisplayOn(IWah wah) {
+			wah.PutErr(message);
+		}
+	}
+
 	/// <summary>
 	/// Models an exception that occurs when a resource a coder is trying to load cannot be loaded
 	/// </summary>
@@ -150,6 +164,19 @@ namespace Wah_Interface {
 		}
 		public override void DisplayOn(IWah wah) {
 			wah.PutErr("Error: The given string \"" + str + "\" is not a valid input.");
+		}
+	}
+
+	/// <summary>
+	/// Models an exception that occurs when the user requests something that is missing
+	/// </summary>
+	public class WahMissingInfoException : WahUserException {
+		private string message;
+		public WahMissingInfoException(string message) {
+			this.message = message;
+		}
+		public override void DisplayOn(IWah wah) {
+			wah.PutErr(message);
 		}
 	}
 }

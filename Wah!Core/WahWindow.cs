@@ -9,7 +9,7 @@ using Wah_Interface;
 namespace Wah_Core {
 	internal class WahWindow : Form, NewIDisplay {
 		private const int ANIMATION_CLOCK = 100;
-		private NewIProcessor wpro;
+		private IProcessor wpro;
 		private CancellationTokenSource animeToken;
 		private Task animationTask;
 		private IList<string> history;
@@ -20,7 +20,7 @@ namespace Wah_Core {
 		private VisualBox topPic;
 		private VisualBox botPic;
 		private Label inputLabel;
-		public WahWindow(NewIProcessor wpro) {
+		public WahWindow(IProcessor wpro) {
 			this.wpro = wpro;
 			history = new List<string>();
 			iHistory = -1; // -1 denotes selecting nothing from the history

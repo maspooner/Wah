@@ -41,20 +41,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AModule.cs" />
+    <Compile Include="Disk.cs" />
     <Compile Include="OldAModule.cs" />
-    <Compile Include="CommandBundle.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="IRule.cs" />
-    <Compile Include="IModule.cs" />
     <Compile Include="IBundle.cs" />
     <Compile Include="IData.cs" />
     <Compile Include="IDataVisitor.cs" />
     <Compile Include="IParser.cs" />
     <Compile Include="IWah.cs" />
-    <Compile Include="NewIDisk.cs" />
     <Compile Include="NewWahException.cs" />
     <Compile Include="IVisual.cs" />
-    <Compile Include="OldICore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WahException.cs" />
   </ItemGroup>

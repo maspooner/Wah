@@ -5,8 +5,6 @@ using System.Linq;
 namespace Wah_Interface {
 	
 	public abstract class OldAModule {
-		public string Name { get; }
-		public abstract void SetDefaultSettings(ISettings sets);
 
 		/// <summary>
 		/// Takes a list of string arguments and parses out the ones that are really flags,

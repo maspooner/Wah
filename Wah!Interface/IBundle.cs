@@ -51,7 +51,6 @@ namespace Wah_Interface {
 		private ISet<string> flags;
 		private IDictionary<char, IData> arguments;
 
-		
 		public CommandBundle(ISet<string> flags, IDictionary<char, IData> arguments) {
 			this.flags = flags;
 			this.arguments = arguments;

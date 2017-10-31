@@ -7,29 +7,6 @@ using System.Threading.Tasks;
 
 namespace Wah_Interface {
 	/// <summary>
-	/// Models a collection of commands that share a similar function and can be easily added or removed from the main
-	/// Wah program.
-	/// </summary>
-	public interface IModule {
-		string Name { get; }
-		Color Color { get; }
-
-		/// <summary>
-		/// Does this module contain a command with the given name?
-		/// </summary>
-		/// <param name="cmd">the name of the command</param>
-		bool HasCommand(string cmd);
-
-		/// <summary>
-		/// Retrieves the command with the given name that is in this module.
-		/// </summary>
-		/// <param name="cmd">the string command name</param>
-		/// <returns>the command</returns>
-		ICommand GetCommand(string cmd);
-		
-	}
-
-	/// <summary>
 	/// Models an implementation of a Module with some default commands, ability to load module from a common
 	/// data folder
 	/// </summary>
@@ -37,7 +14,7 @@ namespace Wah_Interface {
 		public string Name { get; private set; }
 		public Color Color { get; private set; }
 		public string Version { get; private set; }
-		public NewIDisk Disk { get; private set; }
+		public IDisk Disk { get; private set; }
 
 		private ISet<ICommand> commands;
 
@@ -45,33 +22,40 @@ namespace Wah_Interface {
 			Name = name;
 			Color = color;
 			Version = version;
-			Disk = new NewWahDisk(this);
-			
+			Disk = CreateDisk();
+
 			commands = new HashSet<ICommand>();
 			//add module default commands:
 			commands.Add(new UncheckedCommand("version", Cmd_Version));
 			commands.Add(new UncheckedCommand("cmdlist", Cmd_Cmdlist));
-			commands.Add(new Help_Cmd("help"));
+			commands.Add(new Cmd_Help("help", this));
 
 			//create the coder command list
 			IEnumerable<ICommand> coderCmds = CreateCommands();
 			//check all commands for correctness before adding
 			foreach (ICommand command in coderCmds) {
 				//can't add null commands or commands with names already inside the set
-				if(command == null || commands.Contains(command) || !ValidCommand(command.Name)) {
+				if (command == null || commands.Contains(command) || !ValidCommand(command.Name)) {
 					throw new WahInvalidCommandException();
 				}
 				else {
 					commands.Add(command);
 				}
 			}
-			
+
 		}
 
 		/// <summary>
 		/// Creates the commands that are a part of this module
 		/// </summary>
 		protected abstract ICommand[] CreateCommands();
+
+		/// <summary>
+		/// Creates the disk for this module
+		/// </summary>
+		protected virtual IDisk CreateDisk() {
+			return new Disk(this);
+		}
 
 		/// <summary>
 		/// Is the given command a valid string for a command?
@@ -112,19 +96,21 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Models a command that displays help information
 	/// </summary>
-	internal class Help_Cmd : CheckedCommand<NoData> {
+	internal class Cmd_Help : CheckedCommand<NoData> {
 		private AModule mod;
-		internal Help_Cmd(string name) : base(name, 
+		internal Cmd_Help(string name, AModule mod) : base(name,
 			//Rules
-			new TypeRule<StringData>('f')) { }
+			new TypeRule<StringData>('f')) {
+			this.mod = mod;
+		}
 
 		public override NoData Apply(IWah wah, IBundle bun) {
-			if(bun.HasArgument('f')) {
-				string cmd = bun.Argument<StringData>('f').Data;
-				if(mod.HasCommand(cmd)) {
+			if (bun.HasArgument('f')) {
+				string cmd = bun.Argument<StringData>('f').String;
+				if (mod.HasCommand(cmd)) {
 					//display help about command
 					wah.Putln("Command " + cmd + " in module " + mod.Name, Color.GreenYellow);
-					mod.Disk.LoadDisplayHelp(wah, mod, cmd);
+					mod.Disk.LoadDisplayHelp(wah, cmd);
 				}
 				else {
 					throw new WahInvalidCommandException();
@@ -132,13 +118,16 @@ namespace Wah_Interface {
 			}
 			else {
 				//display help about module
-				wah.Put("Module " + Color.GreenYellow);
+				wah.Put("Module ", Color.GreenYellow);
 				wah.Putln(mod.Name, mod.Color);
 				wah.Putln("Version " + mod.Version);
 				wah.Putln("=============================");
-				mod.Disk.LoadDisplayHelp(wah, mod, mod.Name);
+				mod.Disk.LoadDisplayHelp(wah, mod.Name);
 			}
 			return new NoData();
 		}
 	}
+
+
+
 }

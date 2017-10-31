@@ -15,3 +15,9 @@ New commands:
  - mei...
     - mei.chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200 for images
  - restart: soft or hard
+
+
+public IEnumerable<Assembly> LoadAllAssemblies() {
+			string[] dlls = Directory.GetFiles(basePath, "*.dll", SearchOption.TopDirectoryOnly);
+			return dlls.Select(dll => Assembly.LoadFile(dll));
+		}

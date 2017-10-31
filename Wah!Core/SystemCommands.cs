@@ -11,7 +11,7 @@ namespace Wah_Core {
 	/// <summary>
 	/// The part of the wah processing that acts as a SYSTEM module with more access to the internals of the unit.
 	/// </summary>
-	internal partial class NewWahProcessor : AModule {
+	internal partial class WahProcessor : AModule {
 		private const string WAH_NO_NAMAE = "wah";
 		private const string WAH_NO_HAN = "Ichi alpha 0";
 
@@ -21,6 +21,9 @@ namespace Wah_Core {
 				new PlainCommand("clear", Cmd_Clear),
 				new PlainCommand("c", Cmd_Close),
 				new PlainCommand("exit", Cmd_Exit),
+				new Cmd_Macro_Set("macro.set", this),
+				new Cmd_Macro_Remove("macro.remove", this),
+				new PlainCommand("macro.list", Cmd_Macro_List),
 				//Temp commands
 				new PlainCommand("wah!", Cmd_Wah),
 				new PlainCommand("wah?", Cmd_WahHuh),
@@ -59,6 +62,15 @@ namespace Wah_Core {
 			return new NoData();
 		}
 
+		// List all of the macros
+		private NoData Cmd_Macro_List(IWah wah, IBundle bun) {
+			wah.Putln("Registered Macros: ", Color.LightGreen);
+			foreach (string key in macros.Keys) {
+				wah.Putln(key + " -> " + macros[key]);
+			}
+			return new NoData();
+		}
+
 
 		//test commands
 
@@ -73,13 +85,13 @@ namespace Wah_Core {
 
 
 		private IData Cmd_Chain1(IWah wah, IBundle bun) {
-			string s = wah.Api.Call<StringData>("chn2").Data;
+			string s = wah.Api.Call<StringData>("chn2").String;
 			wah.Putln("s: " + s);
 			return new NoData();
 		}
 
 		private IData Cmd_Chain2(IWah wah, IBundle bun) {
-			int b = wah.Api.Call<IntData>("chn3 --hey").Data;
+			int b = wah.Api.Call<IntData>("chn3 --hey").Int;
 			return new StringData(b.ToString());
 		}
 
@@ -93,4 +105,45 @@ namespace Wah_Core {
 			}
 		}
 	}
+
+	/// <summary>
+	/// Models a command that sets a macro
+	/// </summary>
+	internal class Cmd_Macro_Set : CheckedCommand<NoData> {
+		private WahProcessor pro;
+		internal Cmd_Macro_Set(string name, WahProcessor pro) : base(name,
+			//Rules
+			new RequireRule('f'),
+			new RequireRule('t'),
+			new TypeRule<StringData>('f'),
+			new TypeRule<StringData>('t')) {
+			this.pro = pro;
+		}
+		public override NoData Apply(IWah wah, IBundle bun) {
+			string from = bun.Argument<StringData>('f').String;
+			string to = bun.Argument<StringData>('t').String;
+			pro.SetMacro(from, to);
+			return new NoData();
+		}
+	}
+
+	/// <summary>
+	/// Models a command that removes a macro
+	/// </summary>
+	internal class Cmd_Macro_Remove : CheckedCommand<NoData> {
+		private WahProcessor pro;
+		internal Cmd_Macro_Remove(string name, WahProcessor pro) : base(name,
+			//Rules
+			new RequireRule('k'),
+			new TypeRule<StringData>('k')) {
+			this.pro = pro;
+		}
+
+		public override NoData Apply(IWah wah, IBundle bun) {
+			string key = bun.Argument<StringData>('k').String;
+			pro.RemoveMacro(key);
+			return new NoData();
+		}
+	}
+
 }

@@ -11,7 +11,7 @@ namespace Wah_Core {
 	internal class WahMain : IWah {
 		private const int TRIGGER_KEY = (int)Keys.OemPeriod;
 
-		private NewWahProcessor WahPro { get; set; }
+		private WahProcessor WahPro { get; set; }
 		private WahWindow WahWind { get; set; }
 
 		public NewIApi Api { get { return WahPro; } }
@@ -19,7 +19,7 @@ namespace Wah_Core {
 
 		private WahMain() {
 			//Get the processor warmed up with the core wah!
-			WahPro = new NewWahProcessor(this);
+			WahPro = new WahProcessor(this);
 			//Create the ui with access to the processor
 			WahWind = new WahWindow(WahPro);
 		}

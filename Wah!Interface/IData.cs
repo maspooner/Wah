@@ -34,52 +34,49 @@ namespace Wah_Interface {
 	/// Models String data.
 	/// </summary>
 	public class StringData : IData {
-		public string Data { get; private set; }
+		public string String { get; private set; }
 		public Color Color { get; private set; }
 
 		public StringData(string data, Color color) {
-			Data = data;
+			String = data;
 			Color = color;
 		}
 		public StringData(string data) : this(data, Color.Yellow) { }
 
-		public R Accept<R>(IDataVisitor<R> visitor) {
+		public virtual R Accept<R>(IDataVisitor<R> visitor) {
 			return visitor.VisitString(this);
 		}
 
 		public override string ToString() {
-			return Data;
+			return String;
 		}
 
 	}
 
 	/// <summary>
-	/// Models integer data
+	/// Models integer data, which can be represented as a string
 	/// </summary>
-	public class IntData : IData {
-		public int Data { get; private set; }
+	public class IntData : StringData {
+		public int Int { get; private set; }
 
-		public IntData(int data) {
-			Data = data;
+		public IntData(int data) : base(data.ToString(), Color.OrangeRed) {
+			Int = data;
 		}
 
-		public R Accept<R>(IDataVisitor<R> visitor) {
+		public override R Accept<R>(IDataVisitor<R> visitor) {
 			return visitor.VisitInt(this);
 		}
 
-		public override string ToString() {
-			return Data.ToString();
-		}
 	}
 
 	/// <summary>
 	/// Models Image data
 	/// </summary>
 	public class ImageData : IData {
-		public Bitmap Data { get; private set; }
+		public Bitmap Image { get; private set; }
 
 		public ImageData(Bitmap data) {
-			Data = data;
+			Image = data;
 		}
 
 		public R Accept<R>(IDataVisitor<R> visitor) {
@@ -95,11 +92,11 @@ namespace Wah_Interface {
 	/// Models list data, usually of one type of IData
 	/// </summary>
 	public class ListData : IData, IEnumerable<IData> {
-		public IList<IData> Data { get; private set; }
+		public IList<IData> List { get; private set; }
 
 		public ListData(params IData[] data) : this(data.ToList()) {}
 		public ListData(IList<IData> data) {
-			Data = data;
+			List = data;
 		}
 
 		public R Accept<R>(IDataVisitor<R> visitor) {
@@ -120,7 +117,7 @@ namespace Wah_Interface {
 		/// <returns>the mapped list of elements</returns>
 		public IList<R> Map<D, R>(Func<D, R> mapper) where D : IData {
 			IList<R> result = new List<R>();
-			foreach(IData d in Data) {
+			foreach(IData d in List) {
 				AssertType<D>(d);
 				result.Add(mapper.Invoke((D) d));
 			}
@@ -134,7 +131,7 @@ namespace Wah_Interface {
 		/// <param name="mapper">the mapper function</param>
 		/// <returns>the transformed list of type R</returns>
 		public IList<R> Map<R>(Func<IData, R> mapper) {
-			return Data.Select(mapper).ToList();
+			return List.Select(mapper).ToList();
 		}
 
 		/// <summary>
@@ -148,7 +145,7 @@ namespace Wah_Interface {
 		/// <returns>the final R value</returns>
 		public R Fold<D, R>(Func<R, D, R> folder, R start) where D : IData {
 			R result = start;
-			foreach(IData d in Data) {
+			foreach(IData d in List) {
 				AssertType<D>(d);
 				result = folder.Invoke(result, (D) d);
 			}
@@ -163,7 +160,7 @@ namespace Wah_Interface {
 		/// <param name="start">the base value for the folder function to start with</param>
 		/// <returns>the final R value</returns>
 		public R Fold<R>(Func<R, IData, R> folder, R start) {
-			return Data.Aggregate(start, folder);
+			return List.Aggregate(start, folder);
 		}
 
 		/// <summary>
@@ -174,7 +171,7 @@ namespace Wah_Interface {
 		/// <param name="pred">the predicate</param>
 		/// <returns>True if any satisfy the predicate</returns>
 		public bool Any<D>(Func<D, bool> pred) where D : IData {
-			foreach(IData d in Data) {
+			foreach(IData d in List) {
 				AssertType<D>(d);
 				if(pred.Invoke((D) d)) {
 					return true;
@@ -189,7 +186,7 @@ namespace Wah_Interface {
 		/// <param name="pred">the predicate</param>
 		/// <returns>True if any satisfy the predicate</returns>
 		public bool Any(Func<IData, bool> pred) {
-			return Data.Any(pred);
+			return List.Any(pred);
 		}
 
 		/// <summary>
@@ -200,7 +197,7 @@ namespace Wah_Interface {
 		/// <param name="pred">the predicate</param>
 		/// <returns>True if all satisfy the predicate</returns>
 		public bool All<D>(Func<D, bool> pred) where D : IData {
-			foreach (IData d in Data) {
+			foreach (IData d in List) {
 				AssertType<D>(d);
 				if (pred.Invoke((D)d)) {
 					return false;
@@ -215,7 +212,7 @@ namespace Wah_Interface {
 		/// <param name="pred">the predicate</param>
 		/// <returns>True if all satisfy the predicate</returns>
 		public bool All<D>(Func<IData, bool> pred) where D : IData {
-			return Data.All(pred);
+			return List.All(pred);
 		}
 
 		/// <summary>
@@ -234,7 +231,7 @@ namespace Wah_Interface {
 		}
 
 		public IEnumerator<IData> GetEnumerator() {
-			return Data.GetEnumerator();
+			return List.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
