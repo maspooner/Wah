@@ -15,6 +15,7 @@ New commands:
  - mei...
     - mei.chop -i=[img-name|dir-name] -o=[out-file|out-dir] -l=50 -r=200 for images
  - restart: soft or hard
+ - commands from sayoka!
 
 
 public IEnumerable<Assembly> LoadAllAssemblies() {

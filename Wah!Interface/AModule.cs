@@ -51,7 +51,7 @@ namespace Wah_Interface {
 		protected abstract ICommand[] CreateCommands();
 
 		/// <summary>
-		/// Creates the disk for this module
+		/// Creates the disk for this module.
 		/// </summary>
 		protected virtual IDisk CreateDisk() {
 			return new Disk(this);
@@ -77,7 +77,7 @@ namespace Wah_Interface {
 		/// A command all modules have: Prints out this module's version
 		/// </summary>
 		private StringData Cmd_Version(IWah wah, IBundle bun) {
-			return new StringData(Version, System.Drawing.Color.Aqua);
+			return new StringData(Version, Color.Aqua);
 		}
 
 		/// <summary>

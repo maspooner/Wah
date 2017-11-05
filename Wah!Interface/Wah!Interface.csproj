@@ -43,7 +43,6 @@
   <ItemGroup>
     <Compile Include="AModule.cs" />
     <Compile Include="Disk.cs" />
-    <Compile Include="OldAModule.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="IRule.cs" />
     <Compile Include="IBundle.cs" />

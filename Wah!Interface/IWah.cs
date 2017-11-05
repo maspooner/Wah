@@ -11,8 +11,8 @@ namespace Wah_Interface {
 	/// such as write to the screen, access the hard drive, call native functions, and more.
 	/// </summary>
 	public interface IWah {
-		NewIApi Api { get; }
-		NewIDisplay Display { get; }
+		IApi Api { get; }
+		IDisplay Display { get; }
 
 		void Log(string line);
 		void Putln(string txt);
@@ -25,7 +25,7 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Represents an interface for the coder with the core command processor to execute certain native commands.
 	/// </summary>
-	public interface NewIApi {
+	public interface IApi {
 		/// <summary>
 		/// Is the module with the given name loaded?
 		/// </summary>
@@ -65,7 +65,7 @@ namespace Wah_Interface {
 	/// <summary>
 	/// Represents an interface with the main display window of the Wah program
 	/// </summary>
-	public interface NewIDisplay {
+	public interface IDisplay {
 		/// <summary>
 		/// Shows the given text in the console with the given color
 		/// </summary>

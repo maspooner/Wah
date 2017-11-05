@@ -13,7 +13,7 @@ namespace Wah_Core {
 	/// <summary>
 	/// The part of the wah processing that handles all procesing and parsing of user input
 	/// </summary>
-	internal partial class WahProcessor : IProcessor, NewIApi {
+	internal partial class WahProcessor : IProcessor, IApi {
 
 		private char[] moduleDelimCache; // prevents creating array each time string[].Split is needed
 		private ISet<IModule> modules;
@@ -106,7 +106,12 @@ namespace Wah_Core {
 		//Internal methods
 		////////////////////////////////////////////////////////
 		internal void SetMacro(string from, string to) {
-			macros.Add(from, to);
+			if(macros.ContainsKey(from)) {
+				macros[from] = to;
+			}
+			else {
+				macros.Add(from, to);
+			}
 		}
 
 		internal void RemoveMacro(string key) {
@@ -195,8 +200,17 @@ namespace Wah_Core {
 			string sBun = iFirstSpace < 0 ? "" :
 				line.Substring(iFirstSpace + 1).Trim(); // should never have first space be at end -> never OB
 
-			//run the command on the bundle
-			return ParseCommand(sCmd).Run<D>(coreWah, ParseBundle(sBun));
+			ICommand cmd = ParseCommand(sCmd);
+			IBundle bun = ParseBundle(sBun);
+			//Verify the command
+			if (cmd.Validate(bun)) {
+				//run the command on the bundle
+				return cmd.Run<D>(coreWah, bun);
+			}
+			else {
+				//user error with missing parameters
+				throw new WahCommandParseException(cmd.LastError());
+			}
 		}
 
 		public IData ParseData(string line) {

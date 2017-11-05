@@ -14,8 +14,8 @@ namespace Wah_Core {
 		private WahProcessor WahPro { get; set; }
 		private WahWindow WahWind { get; set; }
 
-		public NewIApi Api { get { return WahPro; } }
-		public NewIDisplay Display { get { return WahWind; } }
+		public IApi Api { get { return WahPro; } }
+		public IDisplay Display { get { return WahWind; } }
 
 		private WahMain() {
 			//Get the processor warmed up with the core wah!

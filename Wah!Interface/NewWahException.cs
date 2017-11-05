@@ -129,6 +129,19 @@ namespace Wah_Interface {
 	}
 
 	/// <summary>
+	/// Models an exception that occurs when the user makes an error with a written command
+	/// </summary>
+	public class WahCommandParseException : WahUserException {
+		private string message;
+		public WahCommandParseException(string message) {
+			this.message = message;
+		}
+		public override void DisplayOn(IWah wah) {
+			wah.PutErr(message);
+		}
+	}
+
+	/// <summary>
 	/// Models an exception that occurs when the user tries to call a command that doesn't exist
 	/// </summary>
 	public class WahNoCommandException : WahUserException {

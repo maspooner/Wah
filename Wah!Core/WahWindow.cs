@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using Wah_Interface;
 
 namespace Wah_Core {
-	internal class WahWindow : Form, NewIDisplay {
+	internal class WahWindow : Form, IDisplay {
 		private const int ANIMATION_CLOCK = 100;
 		private IProcessor wpro;
 		private CancellationTokenSource animeToken;
