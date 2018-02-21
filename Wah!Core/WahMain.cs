@@ -9,7 +9,7 @@ using Wah_Interface;
 
 namespace Wah_Core {
 	internal class WahMain : IWah {
-		private const int TRIGGER_KEY = (int)Keys.OemPeriod;
+		private const int TRIGGER_KEY = (int)Keys.Y;
 
 		private WahProcessor WahPro { get; set; }
 		private WahWindow WahWind { get; set; }

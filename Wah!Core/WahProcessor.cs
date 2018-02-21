@@ -4,9 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Wah_Interface;
 
 namespace Wah_Core {
@@ -14,8 +12,6 @@ namespace Wah_Core {
 	/// The part of the wah processing that handles all procesing and parsing of user input
 	/// </summary>
 	internal partial class WahProcessor : IProcessor, IApi {
-
-		private char[] moduleDelimCache; // prevents creating array each time string[].Split is needed
 		private ISet<IModule> modules;
 		private IDictionary<string, string> macros;
 		private OutputVisitor outputVisit;
@@ -31,7 +27,6 @@ namespace Wah_Core {
 			//add the system module (this)
 			modules.Add(this);
 			macros = new Dictionary<string, string>();
-			moduleDelimCache = new char[] { MODULE_DELIM };
 			objLock = new object();
 			primedCmd = "";
 			this.coreWah = coreWah;
@@ -81,7 +76,7 @@ namespace Wah_Core {
 			try {
 				coreWah.Putln("> " + primedCmd);
 				//call and save as the last output, expanding macros in the process
-				lastOutput = Call(ExpandMacros(primedCmd));
+				lastOutput = Call(primedCmd);
 				//show the result on screen
 				lastOutput.Accept(outputVisit);
 			}
@@ -192,16 +187,9 @@ namespace Wah_Core {
 		}
 
 		public D Call<D>(string line) where D : IData {
-			line = line.Trim();
-			//split into command and bundle
-			int iFirstSpace = line.IndexOf(' ');
-			string sCmd = iFirstSpace < 0 ? line : line.Substring(0, iFirstSpace).Trim();
-			//no spaces? bundle string is nothing
-			string sBun = iFirstSpace < 0 ? "" :
-				line.Substring(iFirstSpace + 1).Trim(); // should never have first space be at end -> never OB
-
-			ICommand cmd = ParseCommand(sCmd);
-			IBundle bun = ParseBundle(sBun);
+			Tuple<ICommand, IBundle> pair = Parse(line);
+			ICommand cmd = pair.Item1;
+			IBundle bun = pair.Item2;
 			//Verify the command
 			if (cmd.Validate(bun)) {
 				//run the command on the bundle
@@ -216,7 +204,7 @@ namespace Wah_Core {
 		public IData ParseData(string line) {
 			line = line.Trim();
 			//use previous return value
-			if(line.Equals(PREVIOUS_OUTPUT_MARKER)) {
+			if(line.Equals("^")) {
 				return lastOutput;
 			}
 			int iParse = 0;

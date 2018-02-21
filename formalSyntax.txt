@@ -1,0 +1,49 @@
+module,command.subcommand = look in module for command: command.subcommand
+command
+
+wah,readf -n=hi.txt! printf.sp -w=<>
+@1 ! <>
+
+wah , readf - n = hi.txt ! printf.sp - w = <>
+
+TOP ::= CALL
+      | ! TOP
+
+END ::= space
+      | EOL # end of line
+
+NAME ::= letters NAME
+       | . NAME
+       | numbers NAME
+       | END
+       | MACRO
+
+MACRO ::= : NAME
+
+CMD ::=  NAME , NAME   # module command
+      |  NAME
+
+CALL ::= CMD ARGFLAGS
+
+
+ARGFLAGS ::= END
+           | FLAG ARGFLAGS
+           | ARG  ARGFLAGS
+
+
+FLAG ::= - NAME
+
+ARG ::= FLAG = VAL
+
+VAL ::= DATA
+      | letters VAL
+      | numbers VAL
+      | \ ANY VAL
+      | symbols except " VAL
+      | END
+
+DATA ::= "VAL"                   # string
+       | [DATA...]               # array
+       | @ numbers               # image
+       | $number number... END   #number
+       | <>                      #previous output
